@@ -38,3 +38,44 @@ module cpu_core_mips (
     wire [31:0] sign_ext_imm ={{16{imm16[15]}}, imm16};
     wire [31:0] zero_ext_imm = {16'h0000, imm16};
     wire [31:0] upper_imm = {imm16, 16'h0000};
+
+    //opcode & decode
+    localparam OP_RTYPE = 6'b000000;
+    localparam OP_J = 6'b000010;
+    localparam OP_JAL = 6'b000011;
+    localparam OP_BEQ = 6'b000100;
+    localparam OP_BNE = 6'b000101;
+    localparam OP_ADDI = 6'b001000;
+    localparam OP_ADDIU = 6'b001001;
+    localparam OP_SLTI = 6'b001010;
+    localparam OP_ANDI = 6'b001100;
+    localparam OP_ORI = 6'b001101;
+    localparam OP_XORI = 6'b001110;
+    localparam OP_LUI = 6'b001111; 
+    localparam OP_COP0 = 6'010000;
+    localparam OP_LW = 6'b100011;
+    localparam OP_SW = 6'b101011;
+
+    localparam FN_SLL = 6'b000000;
+    localparam FN_SRL = 6'b000010;
+    localparam FN_JR = 6'b001000;
+    localparam FN_ADD = 6'b100000;
+    localparam FN_ADDU = 6'b100001;
+    localparam FN_SUB = 6'b100010;
+    localparam FN_SUBU = 6'b100011;
+    localparam FN_AND = 6'b100100;
+    localparam FN_OR = 6'b100101;
+    localparam FN_XOR = 6'b100110;
+    localparam FN_NOR = 6'b100111;
+    localparam FN_SLT = 6'b101010;
+    localparam FN_ERET = 6'b011000;
+
+    wire is_rtype = (opcode == OP_RTYPE);
+    wire is_jr = is_rtype && (funct == FN_JR);
+    wire is_eret = (opcode == OP_COP0) && (funct == FN_ERET);
+    wire is_lw = (opcode == OP_LW);
+    wire is_sw = (opcode == OP_SW);
+    wire is_beq = (opcode == OP_BEQ);
+    wire is_bne = (opcode == OP_BNE);
+    wire is_j = (opcode == OP_J);
+    wire is_jal = (opcode == OP_JAL);
