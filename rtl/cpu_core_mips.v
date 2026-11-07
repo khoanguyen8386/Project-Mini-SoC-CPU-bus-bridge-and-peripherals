@@ -25,3 +25,16 @@ module cpu_core_mips (
     output wire [31:0] dbg_epc,
     output wire dbg_in_isr
 );
+    //instruction field
+    wire [5:0] opcode = imem_rdata[31:26];
+    wire [4:0] rs = imem_rdata[25:21];
+    wire [4:0] rt = imem_rdata[20:16];
+    wire [4:0] rd = imem_rdata[15:11];
+    wire [4:0] shamt = imem_rdata[10:6];
+    wire [5:0] funct = imem_rdata[5:0];
+    wire [15:0] imm16 = imem_rdata[15:0];
+    wire [25:0] jaddr = imem_rdata[25:0];
+
+    wire [31:0] sign_ext_imm ={{16{imm16[15]}}, imm16};
+    wire [31:0] zero_ext_imm = {16'h0000, imm16};
+    wire [31:0] upper_imm = {imm16, 16'h0000};
