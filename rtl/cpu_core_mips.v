@@ -79,3 +79,91 @@ module cpu_core_mips (
     wire is_bne = (opcode == OP_BNE);
     wire is_j = (opcode == OP_J);
     wire is_jal = (opcode == OP_JAL);
+    
+    // 32 x 32-bit general purpose register file
+    reg [31:0] regfile [0:31];
+    integer i;
+    wire [31:0] rdata1 = (rs == 5'd0) ? 32'h0000_0000 : regfile[rs];
+    wire [31:0] rdata2 = (rt == 5'd0) ? 32'h0000_0000 : regfile[rt];
+
+    //alu & control logic
+    reg [31:0] alu_b;
+    reg [31:0] alu_out;
+    reg reg_write_en;
+    reg [4:0] reg_waddr;
+    reg [31:0] reg_wdata;
+
+    always @(*) begin 
+        //operand B selection
+        case (opcode)
+            OP_RTYPE,
+            OP_BEQ,
+            OP_BNE: alu_b = rdata2;
+            OP_ANDI,
+            OP_ORI,
+            OP_XORI: alu_b = zero_ext_imm;
+            OP_LUI: alu_b = upper_imm;
+            default: alu_b = sign_ext_imm;
+        endcase
+        
+        //alu computation 
+        case (opcode)
+            OP_RTYPE: begin 
+                case (funct)
+                    FN_SLL: alu_out = rdata2 << shamt;
+                    FN_SRL: alu_out = rdata2 >> shamt;
+                    FN_ADD,
+                    FN_ADDU: alu_out = rdata1 + rdata2;
+                    FN_SUB,
+                    FN_SUBU: alu_out = rdata1 - rdata2;
+                    FN_AND: alu_out = rdata1 & rdata2;
+                    FN_OR: alu_out = rdata1 | rdata2;
+                    FN_XOR: alu_out = rdata1 ^ rdata2;
+                    FN_NOR: alu_out = ~(rdata1 | rdata2);
+                    FN_SLT: alu_out = ($signed(rdata1) < $signed(rdata2)) ? 32'd1 : 32'd0;
+                    default: alu_out = 32'h0000_0000;
+                endcase
+            end
+            OP_ADDI,
+            OP_ADDIU,
+            OP_LW,
+            OP_SW: alu_out = rdata1 + rdata_b;
+            OP_SLTI: alu_out = ($signed(rdata1) < $signed(alu_b)) ? 32'd1 : 32'd0;
+            OP_ANDI: alu_out = rdata1 & alu_b;
+            OP_ORI: alu_out = rdata1 | alu_b;
+            OP_XORI: alu_out = rdata1 ^ alu_b;
+            OP_LUI: alu_out = alu_b;
+            default: alu_out = 32'h0000_0000;
+        endcase
+
+        //register write-back control 
+        reg_write_en = 1'b0;
+        reg_waddr = rd;
+        reg_wdata = alu_out;
+        if(is_rtype) begin 
+            if(funct != FN_JR) begin 
+                reg_write_en = 1'b1;
+                reg_waddr = rd;
+                reg_wdata = alu_out;
+            end
+        end else if (opcode == OP_ADDI || opcode == OP_ADDIU ||
+                     opcode == OP_SLTI || opcode == OP_ANDI ||
+                     opcode == OP_ORI || opcode == OP_XORI ||
+                     opcode == OP_LUI) begin
+                        reg_write_en = 1'b1;
+                        reg_waddr = rt;
+                        reg_wdata = alu_out;
+                     end else if (is_lw) begin
+                        reg_write_en = 1'b1;
+                        reg_waddr = rt;
+                        reg_wdata = mem_data;
+                     end else if (is_lw) begin 
+                        reg_write_en = 1'b1;
+                        reg_waddr = rt;
+                        reg_wdata = mem_rdata;
+                     end else if (is_jal) begin 
+                        reg_write_en = 1'b1;
+                        reg_waddr = 5'd31;
+                        reg_wdata = imem_addr + 32'd4;
+                     end
+    end
