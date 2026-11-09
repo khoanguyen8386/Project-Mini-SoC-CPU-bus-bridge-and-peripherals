@@ -167,3 +167,57 @@ module cpu_core_mips (
                         reg_wdata = imem_addr + 32'd4;
                      end
     end
+    
+    //memory interface signals
+    assign mem_reg = is_lw | is_sw; 
+    assign mem_we = is_sw;
+    assign mem_size = 3'b010;
+    assign mem_addr = alu_out;
+    assign mem_wdata = rdata2; 
+
+    //next pc & interrupt controller logic
+    reg [31:0] epc_reg;
+    reg irq_en_reg;
+    reg in_isr_reg;
+    wire [31:0] pc_plus4 = imem_addr +32d'4;
+    wire [31:0] branch_tgt = pc_plus4 + {sign_ext_imm[29:0], 2'b000};
+    wire [31:0] jump_tgt = {pc_plus[31:28], jaddr, 2'b00};
+    wire branch_taken = (is_beq && (rdata1 == rdata2)) ||
+                        (is_bne && (rdata1 != rdata2));
+    wire [31:0] next_pc_normal = is_eret ? epc_reg:
+                                 is_jr ? rdata1: 
+                                 (is_j | is_jal) ? jump_tgt: 
+                                 branch_taken ? branch_tgt: 
+                                                pc_plus4;
+    wire take_irq = timer_irq && irq_en_reg && !in_isr_reg && !is_eret;
+    always @(posedge clk needge rst_n) begin
+        if(!rst_n) begin
+            imem_addr <= 32'h0000_0000;
+            epc_reg <= 32'h0000_0000;
+            irq_en_reg <= 1'b1;
+            in_isr_reg <= 1'b0;
+            for(i = 0; i< 32; i=i+1) begin 
+                regfile[i] <= 32'h0000_0000;
+            end
+        end esle if (!cpu_stall) begin 
+            if (reg_write_en && (reg_waddr != 5'd0)) begin 
+                regfile[reg_waddr] <= reg_wdata;
+            end
+            if (take_irq) begin 
+                epc_reg <= next_pc_normal;
+                imem_addr <= 32'h0000_0010;
+                irq_en_reg <= 1'b0;
+                in_isr_reg <= 1'b1;
+            end else if (is_eret) begin 
+                imem_addr <= epc_reg;
+                irq_en_reg <= 1'b1;
+                in_isr_reg <= 1'b0;
+            end else begin 
+                imem_addr <= next_pc_normal;
+            end
+        end
+    end
+    assign dbg_pc = imem_addr;
+    assign dbg_epc = epc_reg;
+    assign dbg_in_isr = in_isr_reg;
+endmodule 
