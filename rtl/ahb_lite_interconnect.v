@@ -75,4 +75,42 @@ module ahb_lite_interconnect(
             endcase
         end 
     end
-    
+
+    localparam [1:0] MUX_SRAM = 2'b00;
+    localparam [1:0] MUX_APB = 2'b01;
+    localparam [1:0] MUX_DEF = 2'b10;
+
+    reg[1:0] hsel_data_phase;
+
+    always @(posedge HCLK or negedge HRESETn) begin
+        if (!HRESETn) begin
+            hsel_data_phase <= MUX_SRAM;
+        end else if (HREADY) begin
+            if (HSEL_SRAM)
+                hsel_data_phase <= MUX_SRAM;
+            else if (HSEL_APB)
+                hsel_data_phase <= MUX_APB;
+            else
+                hsel_data_phase <= MUX_DEF;
+        end
+    end
+    always @(*) begin
+        case (hsel_data_phase)      
+            MUX_SRAM: begin
+                HDATA = HRDATA_SRAM;
+                HREADY = HREADYOUT_SRAM;
+                HRESP = HRESP_SRAM;
+            end 
+            MUX_APB: begin
+                HRDATA = HRDATA_APB;
+                HREADY = HREADYOUT_APB;
+                HRESP = HRESP_APB;
+            end
+            default: begin
+                HRDATA = 32'h0000_0000;
+                HREADY = HREADYOUT_DEF;
+                HRESP = HRESP_DEF;
+            end
+        endcase
+    end
+endmodule
