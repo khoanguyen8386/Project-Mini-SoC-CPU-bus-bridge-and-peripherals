@@ -93,4 +93,4 @@ module cpu_abh_wapper (
      assign cpu_stall = (state == ST_ADDR_PHASE) ? mem_req : ~HREADY;
     assign mem_rdata = HRDATA;
 
-    endmodule
+endmodule
