@@ -11,7 +11,7 @@ mini_soc_topic19/
 │   ├── ahb_to_apb_bridge.v                # X [Batch 2] Synchronous AHB-Lite to APB3 Bridge FSM
 │   ├── apb_clk_ctrl.v                     # X [Batch 2] Low-Power Peripheral Clock-Enable Controller
 │   ├── apb_gpio.v                         # X [Batch 2] APB Slave 0: 18-bit SW Input / LEDR Output
-│   ├── apb_timer.v                        #  [Batch 2] APB Slave 1: 32-bit Timer @ 50MHz + IRQ
+│   ├── apb_timer.v                        # X [Batch 2] APB Slave 1: 32-bit Timer @ 50MHz + IRQ
 │   ├── apb_uart.v                         #  [Batch 2] APB Slave 2: 115200 8N1 UART TX/RX (Div=434)
 │   ├── mini_soc_top.v                     #  [Batch 2] Complete SoC Hierarchy Integration
 │   └── de2_115_wrapper.v                  # X [Batch 2] DE2-115 Top-Level Pin & Reset Synchronizer
