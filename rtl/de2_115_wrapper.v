@@ -45,5 +45,19 @@ module de2_115_wrapper (
     endmodule
 
     module de2_115_top (
-        
-    )
+        input  wire          CLOCK_50,
+        input  wire [0:0]    KEY,
+        input  wire [17:0]   SW,
+        output wire [17:0]   LEDR,
+        output wire          UART_TXD,
+        input  wire          UART_RXD
+    );
+        de2_115_wrapper u_wrapper (
+            .CLOCK_50 (CLOCK_50),
+            .KEY      (KEY),
+            .SW       (SW),
+            .LEDR     (LEDR),
+            .UART_TXD (UART_TXD),
+            .UART_RXD (UART_RXD)
+        );
+    endmodule
