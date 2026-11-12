@@ -46,4 +46,55 @@
         wire        HSEL_APB;
         wire        HSEL_DEF;
 
+        wire [31:0] HRDATA_SRAM;
+        wire        HREADY_SRAM;
+        wire        HRESP_SRAM;
+
+        wire [31:0] HRDATA_APB;
+        wire        HREADYOUT_APB;
+        wire        HRESP_APB;
+
+        wire [31:0] PADDR;
+        wire        PENABLE;
+        wire        PWRITE;
+        wire [31:0] PWDATA;
+        wire        PSEL_GPIO;
+        wire        PSEL_TIMER;
+        wire        PSEL_UART;
+        wire        PSEL_CLK;
+
+        wire [31:0] PRDATA_GPIO;
+        wire        PREADY_GPIO;
+        wire [31:0] PRDATA_TIMER;
+        wire        PREADY_TIMER;
+        wire [31:0] PRDATA_CLK;
+        wire        PREADY_CLK;
+
+        wire        timer_irq;
+        wire        clk_en_gpio;
+        wire        clk_en_timer;
+        wire        clk_en_uart;
+        wire [31:0] dbg_epc;
+        wire        dbg_in_isr;
+        
+        assign dbg_timer_irq = timer_irq;
+
+        cpu_core_mips u_cpu_core (
+            .clk        (HCLK),
+            .rst_n      (HRESETn),
+            .imem_addr  (imem_addr),
+            .imem_rdata (imem_rdata),
+            .mem_req    (mem_req),
+            .mem_we     (mem_we),
+            .mem_size   (mem_size),
+            .mem_addr   (mem_addr),
+            .mem_wdata  (mem_wdata),
+            .mem_rdata  (mem_rdata),
+            .cpu_stall  (cpu_stall),
+            .timer_irq  (timer_irq),
+            .dbg_pc     (dbg_pc),
+            .dbg_epc    (dbg_epc),
+            dbg_in_isr  (dbg_in_isr)
+        );
+
         
