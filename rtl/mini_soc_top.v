@@ -97,4 +97,27 @@
             dbg_in_isr  (dbg_in_isr)
         );
 
+        cpu_ahb_wrapper u_ahb_master (
+            .HCLK       (HCLK),
+            .HRESETn    (HRESETn),
+            .mem_req    (mem_req),
+            .mem_we     (mem_we),
+            .mem_size   (mem_size),
+            .mem_addr   (mem_addr),
+            .mem_wdata  (mem_wdata),
+            .mem_rdata  (mem_rdata),
+            .cpu_stall  (cpu_stall),
+            .HADDR      (HADDR),
+            .HBURST     (HBURST),
+            .HMASTLOCK  (HMASTLOCK),
+            .HPROT      (HPROT),
+            .HSIZE      (HSIZE),
+            .HTRANS     (HTRANS),
+            .HWDATA     (HWDATA),
+            .HWRITE     (HWRITE),
+            .HRDATA     (HRDATA),
+            .HREADY     (HREADY),
+            .HRESP      (HRESP)
+        );
+
         
