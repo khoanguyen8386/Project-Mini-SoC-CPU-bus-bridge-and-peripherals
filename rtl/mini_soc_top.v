@@ -120,4 +120,15 @@
             .HRESP      (HRESP)
         );
 
-        
+        ahb_lite_interconnect u_ahb_interconnect (
+            .HCLK           (HCLK),
+            .HRESETn        (HRESETn),
+            .HADDR          (HADDR),
+            .HTRANS         (HTRANS),
+            .HSEL_SRAM      (HSEL_SRAM),
+            .HSEL_APB       (HSEL_APB),
+            .HRDATA_SRAM    (HRDATA_SRAM),
+            .HREADYOUT_SRAM (HREADYOUT_SRAM),
+            .HRESP_SRAM     (HRESP_SRAM),
+            .HRDATA_APB     (HRDATA_APB),
+        )
