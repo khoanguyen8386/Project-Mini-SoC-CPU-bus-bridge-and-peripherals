@@ -19,3 +19,31 @@
         output wire        dbg_timer_irq
 
     );
+
+        wire [31:0] imem_addr;
+        wire [31:0] imem_rdata;
+
+        wire        mem_req;
+        wire        mem_we;
+        wire [2:0]  mem_size;
+        wire [31:0] mem_addr;
+        wire [31:0] mem_rdata;
+        wire        cpu_stall;
+
+        wire [31:0] HADDR;
+        wire [2:0]  HBURST;
+        wire        HMASTLOCK;
+        wire [3:0]  HPROT;
+        wire [2:0]  HSIZE;
+        wire [1:0]  HTRANS;
+        wire [31:0] HWDATA;
+        wire        HWRITE;
+        wire [31:0] HRDATA;
+        wire        HREADY;
+        wire        HRESP;
+
+        wire        HSEL_SRAM;
+        wire        HSEL_APB;
+        wire        HSEL_DEF;
+
+        
