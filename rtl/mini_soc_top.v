@@ -131,4 +131,54 @@
             .HREADYOUT_SRAM (HREADYOUT_SRAM),
             .HRESP_SRAM     (HRESP_SRAM),
             .HRDATA_APB     (HRDATA_APB),
+            .HREADYOUT_SRAM (HREADYOUT_SRAM),
+            .HRESP_APB      (HRESP_APB),
+            .HRDATA         (HRDATA),
+            .HREADY         (HREADY),
+            .HRESP          (HRESP)
+        );
+
+        onchip_sram #(
+            .MEM_INIT_HEX   (MEM_INIT_HEX),
+            .MEM_INIT_MIF   (MEM_INIT_MIF)
+        ) u_onchip_sram (
+            .HCLK           (HCLK),
+            .HRESETn        (HRESETn),
+            .imem_addr      (imem_addr),
+            .imem_rdata     (imem_rdata),
+            .HSEL           (HSEL_SRAM),
+            .HADDR          (HADDR),
+            .HTRANS         (HTRANS),
+            .HSIZE          (HSIZE),
+            .HWRITE         (HWRITE),
+            .HREADY         (HREADY),
+            .HWDATA         (HWDATA),
+            .HRDATA         (HRDATA_SRAM),
+            .HREADYOUT      (HREADYOUT_SRAM),
+            .HRESP          (HRESP_SRAM)
+        );
+
+        ahb_to_apb_bridge u_ahb_to_apb_bridge (
+            .HCLK           (HCLK)
+            .HRESETn        (HRESETn),
+            .HSEL           (HSEL_APB),
+            .HADDR          (HADDR),
+            .HSIZE          (HSIZE),
+            .HWRITE         (HWRITE),
+            .HREADY         (HREADY),
+            .HWDATA         (HWDATA),
+            .HRDATA         (HRDATA_APB),
+            .HREADYOUT      (HREADYOUT_APB),
+            .HRESP          (HRESP_APB),
+            .PADDR          (PADDR),
+            .PENABLE        (PENABLE),
+            .PWRITE         (PWRITE),
+            .PWDATA         (PWDATA),
+            .PSEL_GPIO      (PSEL_GPIO),
+            .PSEL_TIMER     (PSEL_TIMER),
+            .PSEL_UART      (PSEL_UART),
+            .PSEL_CLK       (PSEL_CLK),
+            PRDATA_GPIO     (PRDATA_GPIO),
+            PREADY_TIMER    (PREADY_TIMER),
+            
         )
