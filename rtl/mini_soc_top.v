@@ -131,6 +131,121 @@
             .HREADYOUT_SRAM (HREADYOUT_SRAM),
             .HRESP_SRAM     (HRESP_SRAM),
             .HRDATA_APB     (HRDATA_APB),
+<<<<<<< HEAD
+        );
+        onchip_sram #(
+            .MEM_INIT_HEX (MEM_INIT_HEX),
+            .MEM_INIT_MIF (MEM_INIT_MIF)
+        ) u_onchip_sram (
+            .HCLK       (HCLK),
+            .HRESETn    (HRESETn),
+            .imem_addr  (imem_addr),
+            .imem_rdata (imem_rdata),
+            .HSEL       (HSEL_SRAM),
+            .HADDR      (HADDR),
+            .HTRANS     (HTRANS),
+            .HSIZE      (HSIZE),
+            .HWRITE     (HWRITE),
+            .HREADY     (HREADY),
+            .HWDATA     (HWDATA),
+            .HRDATA     (HRDATA_SRAM),
+            .HREADYOUT  (HREADYOUT_SRAM),
+            .HRESP      (HRESP_SRAM)
+        );
+        ahb_to_apb_bridge u_ahb_to_apb_bridge (
+            .HCLK         (HCLK),
+            .HRESETn      (HRESETn),
+            .HSEL         (HSEL_APB),
+            .HADDR        (HADDR),
+            .HTRANS       (HTRANS),
+            .HSIZE        (HSIZE),
+            .HWRITE       (HWRITE),
+            .HREADY       (HREADY),
+            .HWDATA       (HWDATA),
+            .HRDATA       (HRDATA_APB),
+            .HREADYOUT    (HREADYOUT_APB),
+            .HRESP        (HRESP_APB),
+            .PADDR        (PADDR),
+            .PENABLE      (PENABLE),
+            .PWRITE       (PWRITE),
+            .PWDATA       (PWDATA),
+            .PSEL_GPIO    (PSEL_GPIO),
+            .PSEL_TIMER   (PSEL_TIMER),
+            .PSEL_UART    (PSEL_UART),
+            .PSEL_CLK     (PSEL_CLK),
+            .PRDATA_GPIO  (PRDATA_GPIO),
+            .PREADY_GPIO  (PREADY_GPIO),
+            .PRDATA_TIMER (PRDATA_TIMER),
+            .PREADY_TIMER (PREADY_TIMER),
+            .PRDATA_UART  (PRDATA_UART),
+            .PREADY_UART  (PREADY_UART),
+            .PRDATA_CLK   (PRDATA_CLK),
+            .PREADY_CLK   (PREADY_CLK)
+        );
+        apb_gpio u_apb_gpio (
+            .PCLK        (HCLK),
+            .PRESETn     (HRESETn),
+            .clk_en_gpio (clk_en_gpio),
+            .PSEL        (PSEL_GPIO),
+            .PENABLE     (PENABLE),
+            .PWRITE      (PWRITE),
+            .PADDR       (PADDR),
+            .PWDATA      (PWDATA),
+            .PRDATA      (PRDATA_GPIO),
+            .PREADY      (PREADY_GPIO),
+            .sw_in       (gpio_sw_in),
+            .ledr_out    (gpio_ledr_out)
+        );
+        apb_timer #(
+            .DEFAULT_RELOAD (TIMER_RELOAD)
+        ) u_apb_timer (
+            .PCLK         (HCLK),
+            .PRESETn      (HRESETn),
+            .clk_en_timer (clk_en_timer),
+            .PSEL         (PSEL_TIMER),
+            .PENABLE      (PENABLE),
+            .PWRITE       (PWRITE),
+            .PADDR        (PADDR),
+            .PWDATA       (PWDATA),
+            .PRDATA       (PRDATA_TIMER),
+            .PREADY       (PREADY_TIMER),
+            .timer_irq    (timer_irq)
+        );
+        apb_uart #(
+            .CLK_FREQ  (CLK_FREQ),
+            .BAUD_RATE (UART_BAUD_RATE)
+        ) u_apb_uart (
+            .PCLK        (HCLK),
+            .PRESETn     (HRESETn),
+            .clk_en_uart (clk_en_uart),
+            .PSEL        (PSEL_UART),
+            .PENABLE     (PENABLE),
+            .PWRITE      (PWRITE),
+            .PADDR       (PADDR),
+            .PWDATA      (PWDATA),
+            .PRDATA      (PRDATA_UART),
+            .PREADY      (PREADY_UART),
+            .uart_txd    (uart_txd),
+            .uart_rxd    (uart_rxd)
+        );
+        apb_clk_ctrl u_apb_clk_ctrl (
+            .PCLK         (HCLK),
+            .PRESETn      (HRESETn),
+            .PSEL         (PSEL_CLK),
+            .PENABLE      (PENABLE),
+            .PWRITE       (PWRITE),
+            .PADDR        (PADDR),
+            .PWDATA       (PWDATA),
+            .PRDATA       (PRDATA_CLK),
+            .PREADY       (PREADY_CLK),
+            .clk_en_gpio  (clk_en_gpio),
+            .clk_en_timer (clk_en_timer),
+            .clk_en_uart  (clk_en_uart)
+        );
+    endmodule
+
+    
+=======
             .HREADYOUT_SRAM (HREADYOUT_SRAM),
             .HRESP_APB      (HRESP_APB),
             .HRDATA         (HRDATA),
@@ -182,3 +297,4 @@
             PREADY_TIMER    (PREADY_TIMER),
             
         )
+>>>>>>> 413190da3531e2a2f34961d13f87a60024d2fe98
