@@ -1,4 +1,4 @@
-'`timescale 1ns/1ps
+`timescale 1ns/1ps
 module apb_clk_ctrl(
     input wire PCLK,
     input wire PRESETn,
@@ -14,7 +14,7 @@ module apb_clk_ctrl(
     output wire clk_en_uart
 );
     reg [2:0] clk_en_reg;
-    wire apb_write = SEL && PENABLE && PWRITE;
+    wire apb_write = PSEL && PENABLE && PWRITE;
     wire apb_read = PSEL && !PWRITE; 
     
     //offset 0x00: CLK_EN_REG
@@ -35,7 +35,7 @@ module apb_clk_ctrl(
 
     assign PREADY = 1'b1;
     assign clk_en_gpio = clk_en_reg[0];
-    assign clk_en_timer = clk_eh_reg[1];
+    assign clk_en_timer = clk_en_reg[1];
     assign clk_en_uart = clk_en_reg[2];
 
 endmodule

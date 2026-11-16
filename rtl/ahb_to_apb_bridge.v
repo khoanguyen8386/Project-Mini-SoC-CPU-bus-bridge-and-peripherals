@@ -1,4 +1,4 @@
-'`timescale 1ns/1ps
+`timescale 1ns/1ps
 module ahb_to_apb_bridge(
     input wire HCLK,
     input wire HRESETn,
@@ -45,21 +45,21 @@ module ahb_to_apb_bridge(
 
     //secondary APB address decoder 
     wire [1:0] apb_slave_idx = PADDR[13:12];
-    reg [31:0] prdata_muxl;
+    reg [31:0] prdata_mux;
     reg pready_mux;
     always @(*) begin
         case (apb_slave_idx)
             2'b00: begin
                 prdata_mux = PRDATA_GPIO;
-                pready_mux = PREADY_GPIOO;
+                pready_mux = PREADY_GPIO;
             end 
             2'b01: begin
                 prdata_mux = PRDATA_TIMER;
-                pready_mux = PREADY_TIMER:
+                pready_mux = PREADY_TIMER;
             end
             2'b10: begin
                 prdata_mux = PRDATA_UART;
-                pready_mux = PREADY_MUX;
+                pready_mux = PREADY_UART;
             end
             default: begin
                 prdata_mux = PRDATA_CLK;
@@ -80,7 +80,7 @@ module ahb_to_apb_bridge(
         end else begin
             case (state)
                 ST_IDLE: begin
-                    if (valid_ahb_reg) begin
+                    if (valid_ahb_req) begin
                         state <= ST_SETUP;
                         haddr_reg <= HADDR;
                         hwrite_reg <= HWRITE;
@@ -92,12 +92,12 @@ module ahb_to_apb_bridge(
                     PWDATA <= HWDATA;
                     state <= ST_ACCESS;
                 end
-                ST_ACESS: begin
+                ST_ACCESS: begin
                     if(pready_mux) begin
                         state <= ST_IDLE;
                     end
                 end
-                default: state <= ST_IDLE:
+                default: state <= ST_IDLE;
             endcase
         end
     end
@@ -127,11 +127,11 @@ module ahb_to_apb_bridge(
                 HREADYOUT = pready_mux;
                 PENABLE = 1'b1;
                 PSEL_GPIO = (PADDR[13:12] == 2'b00);
-                PSEL_TIMER = (PADDR[13:12] == 2'h01);
-                PSEL_UART = (PADDR[13:12] == 2'h10);
-                PSEL_CLK = (PADDR[13:12] == 2'h11);
+                PSEL_TIMER = (PADDR[13:12] == 2'b01);
+                PSEL_UART = (PADDR[13:12] == 2'b10);
+                PSEL_CLK = (PADDR[13:12] == 2'b11);
             end
-            default: 
+            default: ;
         endcase
     end
     assign HRESP = 1'b0;

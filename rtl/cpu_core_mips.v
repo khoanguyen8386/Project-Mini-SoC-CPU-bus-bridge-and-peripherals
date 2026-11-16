@@ -9,7 +9,7 @@ module cpu_core_mips (
     input wire [31:0] imem_rdata,
     
     // data memory/ bus wrapper interface
-    output wire mem_reg,
+    output wire mem_req,
     output wire mem_we,
     output wire [2:0] mem_size,
     output wire [31:0] mem_addr,
@@ -18,7 +18,7 @@ module cpu_core_mips (
     input wire cpu_stall,
     
     //hardware interrupt input (from APB timer)
-    input wire time_irq,
+    input wire timer_irq,
 
     //debug for output
     output wire [31:0] dbg_pc,
@@ -52,7 +52,7 @@ module cpu_core_mips (
     localparam OP_ORI = 6'b001101;
     localparam OP_XORI = 6'b001110;
     localparam OP_LUI = 6'b001111; 
-    localparam OP_COP0 = 6'010000;
+    localparam OP_COP0 = 6'b010000;
     localparam OP_LW = 6'b100011;
     localparam OP_SW = 6'b101011;
 
@@ -127,7 +127,7 @@ module cpu_core_mips (
             OP_ADDI,
             OP_ADDIU,
             OP_LW,
-            OP_SW: alu_out = rdata1 + rdata_b;
+            OP_SW: alu_out = rdata1 + alu_b;
             OP_SLTI: alu_out = ($signed(rdata1) < $signed(alu_b)) ? 32'd1 : 32'd0;
             OP_ANDI: alu_out = rdata1 & alu_b;
             OP_ORI: alu_out = rdata1 | alu_b;
@@ -153,10 +153,6 @@ module cpu_core_mips (
                         reg_write_en = 1'b1;
                         reg_waddr = rt;
                         reg_wdata = alu_out;
-                     end else if (is_lw) begin
-                        reg_write_en = 1'b1;
-                        reg_waddr = rt;
-                        reg_wdata = mem_data;
                      end else if (is_lw) begin 
                         reg_write_en = 1'b1;
                         reg_waddr = rt;
@@ -169,7 +165,7 @@ module cpu_core_mips (
     end
     
     //memory interface signals
-    assign mem_reg = is_lw | is_sw; 
+    assign mem_req = is_lw | is_sw; 
     assign mem_we = is_sw;
     assign mem_size = 3'b010;
     assign mem_addr = alu_out;
@@ -179,9 +175,9 @@ module cpu_core_mips (
     reg [31:0] epc_reg;
     reg irq_en_reg;
     reg in_isr_reg;
-    wire [31:0] pc_plus4 = imem_addr +32d'4;
-    wire [31:0] branch_tgt = pc_plus4 + {sign_ext_imm[29:0], 2'b000};
-    wire [31:0] jump_tgt = {pc_plus[31:28], jaddr, 2'b00};
+    wire [31:0] pc_plus4 = imem_addr + 32'd4;
+    wire [31:0] branch_tgt = pc_plus4 + {sign_ext_imm[29:0], 2'b00};
+    wire [31:0] jump_tgt = {pc_plus4[31:28], jaddr, 2'b00};
     wire branch_taken = (is_beq && (rdata1 == rdata2)) ||
                         (is_bne && (rdata1 != rdata2));
     wire [31:0] next_pc_normal = is_eret ? epc_reg:
@@ -190,7 +186,7 @@ module cpu_core_mips (
                                  branch_taken ? branch_tgt: 
                                                 pc_plus4;
     wire take_irq = timer_irq && irq_en_reg && !in_isr_reg && !is_eret;
-    always @(posedge clk needge rst_n) begin
+    always @(posedge clk or negedge rst_n) begin
         if(!rst_n) begin
             imem_addr <= 32'h0000_0000;
             epc_reg <= 32'h0000_0000;
@@ -199,7 +195,7 @@ module cpu_core_mips (
             for(i = 0; i< 32; i=i+1) begin 
                 regfile[i] <= 32'h0000_0000;
             end
-        end esle if (!cpu_stall) begin 
+        end else if (!cpu_stall) begin 
             if (reg_write_en && (reg_waddr != 5'd0)) begin 
                 regfile[reg_waddr] <= reg_wdata;
             end

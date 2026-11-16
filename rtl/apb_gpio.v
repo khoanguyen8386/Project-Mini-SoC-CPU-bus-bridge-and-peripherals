@@ -1,5 +1,5 @@
-'`timescale 1ns/1ps
-module apb_gpip(
+`timescale 1ns/1ps
+module apb_gpio(
     input wire PCLK,
     input wire PRESETn,
     input wire clk_en_gpio,
@@ -43,7 +43,7 @@ module apb_gpip(
     always @(*) begin
         PRDATA = 32'h0000_0000;
         if(apb_read) begin
-            case (PADRR[7:0])
+            case (PADDR[7:0])
                 8'h00: PRDATA = {14'h0, sw_sync2};
                 8'h04: PRDATA = {14'h0, ledr_reg};
                 8'h08: PRDATA = {14'h0, dir_reg}; 

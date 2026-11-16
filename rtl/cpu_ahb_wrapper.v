@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-module cpu_abh_wapper (
+module cpu_ahb_wrapper (
     input wire HCLK,
     input wire HRESETn,
 
@@ -10,7 +10,6 @@ module cpu_abh_wapper (
     input wire [2:0]  mem_size,
     input wire [31:0] mem_addr,
     input wire [31:0] mem_wdata,
-    input wire [31:0] mem_rdata,
     output wire [31:0]mem_rdata,
     output wire       cpu_stall,
 
@@ -69,7 +68,7 @@ module cpu_abh_wapper (
     HSIZE = 3'b010;
     HTRANS = HTRANS_IDLE;
     HWDATA = 32'h0000_0000;
-    HWRITE = 1'b01;
+    HWRITE = 1'b0;
     end else if (state == ST_ADDR_PHASE) begin
      HADDR     = mem_req ? mem_addr : 32'h0000_0000;
      HBURST    = 3'b000;        

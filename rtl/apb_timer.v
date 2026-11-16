@@ -1,4 +1,4 @@
-'`timescale 1ns/1ps
+`timescale 1ns/1ps
 module apb_timer #(
     parameter [31:0] DEFAULT_RELOAD = 32'd50_000_000
 )(
@@ -11,9 +11,9 @@ module apb_timer #(
     input wire [31:0] PADDR,
     input wire [31:0] PWDATA,
     output reg [31:0] PRDATA,
-    output wire PREADYm
+    output wire PREADY,
     //output to cpu 
-    output wire time_irq
+    output wire timer_irq
 );
     reg [2:0] ctrl_reg;
     reg timeout_if_reg;
@@ -66,13 +66,13 @@ module apb_timer #(
         end
     end
 
-    always @() begin
+    always @(*) begin
         PRDATA = 32'h0000_0000;
         if (apb_read) begin
             case (PADDR[7:0])
                 8'h00: PRDATA = {29'h0, ctrl_reg};
                 8'h04: PRDATA = {31'h0, timeout_if_reg};
-                8'h08; PRDATA = reload_reg;
+                8'h08: PRDATA = reload_reg;
                 8'h0C: PRDATA = count_reg;
                 default: PRDATA = 32'h0000_0000;
             endcase

@@ -11,7 +11,7 @@ module de2_115_wrapper (
     reg rst_sync_ff1;
     reg rst_sync_ff2;
 
-    always @(posedge CLOCK_50 or negadge KEY[0]) begin
+    always @(posedge CLOCK_50 or negedge KEY[0]) begin
         if(!KEY[0]) begin
             rst_sync_ff1 <= 1'b0;
             rst_sync_ff2 <= 1'b0;
@@ -27,17 +27,17 @@ module de2_115_wrapper (
 
     mini_soc_top #(
         .CLK_FREQ           (50_000_000),
-        .UART_BAUD_RATE     (115200)
-        .TIMER_RELOAD       (32'd50_000_000)
+        .UART_BAUD_RATE     (115200),
+        .TIMER_RELOAD       (32'd50_000_000),
         .MEM_INIT_HEX       ("../sw/firmware.hex"),
         .MEM_INIT_MIF       ("../sw/firmware.mif")
     ) u_mini_soc_top (
-        .HCLK               (CLOCK_50)
+        .HCLK               (CLOCK_50),
         .HRESETn            (HRESETn),
         .gpio_sw_in         (SW),
         .gpio_ledr_out      (LEDR),
-        .uart_txd           (UART_RXD),
-        .UART_RXD           (UART_RXD),
+        .uart_txd           (UART_TXD),
+        .uart_rxd           (UART_RXD),
         .dbg_pc             (unused_dbg_pc),
         .dbg_timer_irq      (unused_dbg_irq)
     );

@@ -1,7 +1,7 @@
-'`timescale 1ns/1ps
+`timescale 1ns/1ps
 module ahb_lite_interconnect(
 
-    input wire HCLK;
+    input wire HCLK,
     input wire HRESETn,
     
     //Input signal 
@@ -97,7 +97,7 @@ module ahb_lite_interconnect(
     always @(*) begin
         case (hsel_data_phase)      
             MUX_SRAM: begin
-                HDATA = HRDATA_SRAM;
+                HRDATA = HRDATA_SRAM;
                 HREADY = HREADYOUT_SRAM;
                 HRESP = HRESP_SRAM;
             end 

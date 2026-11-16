@@ -3,7 +3,7 @@
         parameter integer CLK_FREQ       = 50_000_000,
         parameter integer UART_BAUD_RATE = 115200,
         parameter [31:0]  TIMER_RELOAD   = 32'd50_000_000,
-        parameter         MEM_INIT_HEX   = "../sw/firmware.hex"
+        parameter         MEM_INIT_HEX   = "../sw/firmware.hex",
         parameter         MEM_INIT_MIF   = "../sw/firmware.mif"
     )(
         input wire        HCLK,
@@ -27,6 +27,7 @@
         wire        mem_we;
         wire [2:0]  mem_size;
         wire [31:0] mem_addr;
+        wire [31:0] mem_wdata;
         wire [31:0] mem_rdata;
         wire        cpu_stall;
 
@@ -47,7 +48,7 @@
         wire        HSEL_DEF;
 
         wire [31:0] HRDATA_SRAM;
-        wire        HREADY_SRAM;
+        wire        HREADYOUT_SRAM;
         wire        HRESP_SRAM;
 
         wire [31:0] HRDATA_APB;
@@ -67,6 +68,8 @@
         wire        PREADY_GPIO;
         wire [31:0] PRDATA_TIMER;
         wire        PREADY_TIMER;
+        wire [31:0] PRDATA_UART;
+        wire        PREADY_UART;
         wire [31:0] PRDATA_CLK;
         wire        PREADY_CLK;
 
@@ -94,7 +97,7 @@
             .timer_irq  (timer_irq),
             .dbg_pc     (dbg_pc),
             .dbg_epc    (dbg_epc),
-            dbg_in_isr  (dbg_in_isr)
+            .dbg_in_isr (dbg_in_isr)
         );
 
         cpu_ahb_wrapper u_ahb_master (
@@ -127,11 +130,16 @@
             .HTRANS         (HTRANS),
             .HSEL_SRAM      (HSEL_SRAM),
             .HSEL_APB       (HSEL_APB),
+            .HSEL_DEF       (HSEL_DEF),
             .HRDATA_SRAM    (HRDATA_SRAM),
             .HREADYOUT_SRAM (HREADYOUT_SRAM),
             .HRESP_SRAM     (HRESP_SRAM),
             .HRDATA_APB     (HRDATA_APB),
-<<<<<<< HEAD
+            .HREADYOUT_APB  (HREADYOUT_APB),
+            .HRESP_APB      (HRESP_APB),
+            .HRDATA         (HRDATA),
+            .HREADY         (HREADY),
+            .HRESP          (HRESP)
         );
         onchip_sram #(
             .MEM_INIT_HEX (MEM_INIT_HEX),
@@ -243,58 +251,3 @@
             .clk_en_uart  (clk_en_uart)
         );
     endmodule
-
-    
-=======
-            .HREADYOUT_SRAM (HREADYOUT_SRAM),
-            .HRESP_APB      (HRESP_APB),
-            .HRDATA         (HRDATA),
-            .HREADY         (HREADY),
-            .HRESP          (HRESP)
-        );
-
-        onchip_sram #(
-            .MEM_INIT_HEX   (MEM_INIT_HEX),
-            .MEM_INIT_MIF   (MEM_INIT_MIF)
-        ) u_onchip_sram (
-            .HCLK           (HCLK),
-            .HRESETn        (HRESETn),
-            .imem_addr      (imem_addr),
-            .imem_rdata     (imem_rdata),
-            .HSEL           (HSEL_SRAM),
-            .HADDR          (HADDR),
-            .HTRANS         (HTRANS),
-            .HSIZE          (HSIZE),
-            .HWRITE         (HWRITE),
-            .HREADY         (HREADY),
-            .HWDATA         (HWDATA),
-            .HRDATA         (HRDATA_SRAM),
-            .HREADYOUT      (HREADYOUT_SRAM),
-            .HRESP          (HRESP_SRAM)
-        );
-
-        ahb_to_apb_bridge u_ahb_to_apb_bridge (
-            .HCLK           (HCLK)
-            .HRESETn        (HRESETn),
-            .HSEL           (HSEL_APB),
-            .HADDR          (HADDR),
-            .HSIZE          (HSIZE),
-            .HWRITE         (HWRITE),
-            .HREADY         (HREADY),
-            .HWDATA         (HWDATA),
-            .HRDATA         (HRDATA_APB),
-            .HREADYOUT      (HREADYOUT_APB),
-            .HRESP          (HRESP_APB),
-            .PADDR          (PADDR),
-            .PENABLE        (PENABLE),
-            .PWRITE         (PWRITE),
-            .PWDATA         (PWDATA),
-            .PSEL_GPIO      (PSEL_GPIO),
-            .PSEL_TIMER     (PSEL_TIMER),
-            .PSEL_UART      (PSEL_UART),
-            .PSEL_CLK       (PSEL_CLK),
-            PRDATA_GPIO     (PRDATA_GPIO),
-            PREADY_TIMER    (PREADY_TIMER),
-            
-        )
->>>>>>> 413190da3531e2a2f34961d13f87a60024d2fe98
