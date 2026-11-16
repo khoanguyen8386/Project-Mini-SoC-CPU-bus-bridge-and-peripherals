@@ -1,0 +1,20 @@
+# Quartus Prime temporary & database directories
+fpga/db/
+fpga/incremental_db/
+fpga/simulation/
+fpga/greybox_tmp/
+fpga/hc_output/
+
+# Quartus backup & temporary files
+fpga/*.bak
+fpga/*.orig
+fpga/*.qws
+fpga/*.ppf
+fpga/*.ddb
+fpga/c5_pin_model_dump.txt
+fpga/pll_routing_report.txt
+
+# Ignore heavy intermediate report files in output_files, keep .sof and .summary
+fpga/output_files/*
+!fpga/output_files/*.sof
+!fpga/output_files/*.summary
