@@ -14,6 +14,10 @@
 
 ---
 
+## Hardware Demo
+
+[add video and discription]
+
 ## Key Highlights
 
 - **Custom MIPS32 CPU (`cpu_core_mips`)**: Single-cycle execution with AHB bus-stall support (`cpu_stall`) and hardware interrupt handling (`timer_irq`, `epc`, `eret`).
