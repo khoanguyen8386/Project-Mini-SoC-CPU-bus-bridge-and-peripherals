@@ -1,6 +1,6 @@
 <div align="center">
 
-# Mini-SoC: MIPS32 CPU, AMBA AHB/APB Bus & Peripherals
+# LKKN-DND Mini-SoC: 32-Bit MIPS32 & AMBA 3 AHB-Lite / APB3 System-on-Chip
 
 [![Architecture](https://img.shields.io/badge/ISA-MIPS32-blue.svg)](#)
 [![Bus](https://img.shields.io/badge/Bus-AMBA%20AHB--Lite%20%2F%20APB3-orange.svg)](#)
@@ -8,116 +8,112 @@
 [![FPGA](https://img.shields.io/badge/FPGA-Terasic%20DE2--115%20(Cyclone%20IV%20E)-red.svg)](#)
 [![Tool](https://img.shields.io/badge/Quartus%20Prime-20.1.1%20Lite-purple.svg)](#)
 
-*A complete 32-bit MIPS32 System-on-Chip designed in Verilog HDL with AMBA AHB-Lite interconnect, AHB-to-APB3 bridge, hardware timer interrupts, per-peripheral clock gating, and a 4-mode interactive firmware running on the Terasic DE2-115 FPGA.*
 
-</div>
+<p align="center">
+  <a href="docs/images/mini_soc_top.svg">
+    <img src="docs/images/mini_soc_top.svg" width="100%" alt="LKKN-DND Mini-SoC Core RTL Architecture">
+  </a>
+  <br/>
+  <sub><b>Figure 1:</b> Inside <code>mini_soc_top</code> — 9-Module RTL Netlist synthesized in Intel Quartus Prime (Click image to zoom in full Vector SVG resolution)</sub>
+</p>
 
----
-
-## Hardware Demo
-
-[add video and discription]
-
-## Key Highlights
-
-- **Custom MIPS32 CPU (`cpu_core_mips`)**: Single-cycle execution with AHB bus-stall support (`cpu_stall`) and hardware interrupt handling (`timer_irq`, `epc`, `eret`).
-- **Two-Tier AMBA Bus Architecture**:
-  - **AHB-Lite** high-speed system bus connecting the CPU wrapper to On-Chip SRAM and the APB bridge.
-  - **APB3** low-power peripheral bus (`ST_IDLE` → `ST_SETUP` → `ST_ACCESS`).
-- **4 Memory-Mapped Peripherals**: GPIO (`SW`/`LEDR`), Programmable Timer (with IRQ), UART (115200 baud), and Clock Gating Controller.
-- **DE2-115 Board Integration (`de2_115_wrapper`)**: Reset synchronizer (`KEY[0]`), Double-Dabble Binary-to-BCD converter, 8-digit 7-segment display (`HEX0`–`HEX7`), and 16×2 LCD controller.
+<p align="center">
+  <a href="docs/images/full_chip.svg">
+    <img src="docs/images/full_chip.svg" width="100%" alt="Full DE2-115 Top-Level RTL Schematic with Double-Dabble BCD & HD44780 LCD Controller">
+  </a>
+  <br/>
+  <sub><b>Figure 2:</b> Complete Top-Level Chip (<code>de2_115_wrapper</code>) integrating the Mini-SoC Core, 16-Stage Double-Dabble Binary-to-BCD Engine, 8× 7-Segment Drivers (<code>HEX7..HEX0</code>), and HD44780 16×2 LCD Controller (Click image to zoom)</sub>
+</p>
 
 ---
 
-## System Architecture
+## 1. Chip Overview & Key Specifications
 
-```mermaid
-flowchart LR
-    CPU["cpu_core_mips<br/>(MIPS32 + IRQ)"] <-->|mem_req / stall| AHB_W["cpu_ahb_wrapper<br/>(AHB Master)"]
-    AHB_W <-->|AHB-Lite| AHB_IC["ahb_lite_interconnect<br/>(Address Decoder)"]
-    
-    AHB_IC <-->|"0x0000_0xxx"| SRAM["onchip_sram<br/>(IMEM + DMEM)"]
-    AHB_IC <-->|"0x4000_xxxx"| BRIDGE["ahb_to_apb_bridge<br/>(AHB-to-APB3)"]
-    
-    SRAM -->|imem_rdata| CPU
-    
-    BRIDGE <-->|"0x4000_0000"| GPIO["apb_gpio<br/>(SW / LEDR)"]
-    BRIDGE <-->|"0x4000_1000"| TIMER["apb_timer<br/>(timer_irq)"]
-    BRIDGE <-->|"0x4000_2000"| UART["apb_uart<br/>(115200 baud)"]
-    BRIDGE <-->|"0x4000_3000"| CLK["apb_clk_ctrl<br/>(Clock Gating)"]
-    
-    TIMER -.->|IRQ| CPU
-```
+**LKKN-DND Mini-SoC** is a custom 32-bit RISC System-on-Chip designed in Verilog HDL and deployed on the **Terasic DE2-115 FPGA board (`Intel Cyclone IV E EP4CE115F29C7` @ 50 MHz)**. It pairs a single-cycle MIPS32 processor core (with hardware interrupt support) with an industry-standard two-tier **ARM AMBA 3 AHB-Lite & APB3** interconnect fabric.
 
----
-
-## Memory Map
-
-| Region | Base Address | Bus | Module | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| **On-Chip SRAM** | `0x0000_0000` | AHB-Lite | `onchip_sram` | Instruction & Data memory (`firmware.hex` / `.mif`) |
-| **GPIO** | `0x4000_0000` | APB3 | `apb_gpio` | `SW[17:0]` input & `LEDR[17:0]` output |
-| **Timer** | `0x4000_1000` | APB3 | `apb_timer` | Control, interrupt status (W1C), & reload value |
-| **UART** | `0x4000_2000` | APB3 | `apb_uart` | Serial TX/RX (115200 baud @ 50 MHz) |
-| **Clock Control** | `0x4000_3000` | APB3 | `apb_clk_ctrl` | Dynamic clock-gating enable bits for APB slaves |
-
----
-
-## Repository Structure
-
-```text
-├── docs/       # SRS, Architecture specs, Chip Reference Manual & Learning Guide
-├── fpga/       # Intel Quartus Prime 20.1.1 project (.qpf, .qsf, .sdc, output_files/)
-├── rtl/        # Verilog HDL source files (CPU, AHB/APB buses, peripherals, DE2-115 wrapper)
-└── sw/         # MIPS32 assembly firmware (firmware.asm, firmware.hex, firmware.mif)
-```
-
-<details>
-<summary><b>Click to expand: RTL Module Breakdown (11 files)</b></summary>
-
-| File | Role |
+| Feature | Specification |
 | :--- | :--- |
-| `rtl/cpu_core_mips.v` | MIPS32 CPU core (decode, regfile, ALU, branch/jump, IRQ & `eret`) |
-| `rtl/cpu_ahb_wrapper.v` | Converts CPU memory interface to AHB-Lite (`ST_ADDR_PHASE` / `ST_DATA_PHASE`) |
-| `rtl/ahb_lite_interconnect.v` | AHB address decoder (`HSEL_SRAM`, `HSEL_APB`, `HSEL_DEF`) & response mux |
-| `rtl/onchip_sram.v` | Dual-port-like instruction & data SRAM preloaded with firmware |
-| `rtl/ahb_to_apb_bridge.v` | AHB-Lite to APB3 protocol bridge & secondary APB slave decoder |
-| `rtl/apb_gpio.v` | APB GPIO controller for switches and red LEDs |
-| `rtl/apb_timer.v` | APB hardware timer generating `timer_irq` |
-| `rtl/apb_uart.v` | APB UART transceiver |
-| `rtl/apb_clk_ctrl.v` | APB clock-gating controller (`clk_en_gpio`, `clk_en_timer`, `clk_en_uart`) |
-| `rtl/mini_soc_top.v` | Top-level SoC integrating CPU, buses, SRAM, and peripherals |
-| `rtl/de2_115_wrapper.v` | Terasic DE2-115 board wrapper (reset sync, BCD, 7-seg `HEX0`–`HEX7`, LCD) |
-
-</details>
+| **Chip Brand / ID** | `LKKN DND MINISOC` (Displayed live on onboard 16×2 Character LCD) |
+| **Target FPGA** | Intel Cyclone IV E `EP4CE115F29C7` (Terasic DE2-115) @ `50.000 MHz` (`PIN_Y2`) |
+| **CPU Core (`cpu_core_mips.v`)** | 32-Bit Single-Cycle MIPS32, 32 GPRs, Hardware IRQ Vector (`0x0000_0010`), `EPC` & `ERET` |
+| **High-Speed Bus (`ahb_lite_interconnect.v`)** | AMBA 3 AHB-Lite (Pipelined Address/Data phases, Central Decoder, 2-Cycle `ERROR` Default Slave) |
+| **On-Chip Memory (`onchip_sram.v`)** | Dual-Port SRAM (Port A: 0-Wait Instruction Fetch, Port B: Byte/Halfword/Word AHB Data Slave) |
+| **Peripheral Bridge (`ahb_to_apb_bridge.v`)** | Synchronous AHB-to-APB3 FSM (`ST_IDLE -> ST_SETUP -> ST_ACCESS`) with automatic CPU wait-states |
+| **APB Peripherals (`0x4000_0000`–`3FFF`)** | • **Slave 0 (`apb_gpio`):** 2-FF synchronized `SW[17:0]` inputs & masked `LEDR[17:0]` outputs<br/>• **Slave 1 (`apb_timer`):** 32-bit down-counter, auto-reload, W1C status & `timer_irq` generation<br/>• **Slave 2 (`apb_uart`):** `115200 8N1` UART Transmitter & 16× oversampled Receiver<br/>• **Slave 3 (`apb_clk_ctrl`):** Fine-grained synchronous peripheral clock gating (`clk_en_*`) |
+| **Hardware Display Engine** | • **16-Bit Double-Dabble BCD Hardware Engine** driving 5-digit decimal output on `HEX4..HEX0`<br/>• **Live Program Counter Monitor** on `HEX7..HEX6` & Mode Indicator on `HEX5`<br/>• **HD44780 16×2 LCD Controller** showing `LKKN DND MINISOC` + live mode & decimal/hex output |
+| **Silicon Utilization** | **9,094 Logic Elements (7.9%)** / **3,497 Dedicated Registers** |
 
 ---
 
-## FPGA Implementation Results
+## 2. Live Hardware Benchmark Suite (`sw/firmware.hex`)
 
-Synthesized and fitted on **Terasic DE2-115** (`EP4CE115F29C7`) using **Quartus Prime 20.1.1 Lite Edition**:
+Instead of simple switch-to-LED wiring, the chip executes a **64-instruction MIPS32 benchmark firmware** ([sw/firmware.asm](sw/firmware.asm)) that demonstrates real-time interrupt multitasking, dynamic programming, software arithmetic, and hardware clock gating across **4 interactive modes** selected by **`SW[17:16]`**:
 
-| Resource | Usage | Available | Utilization |
-| :--- | :---: | :---: | :---: |
-| **Total Logic Elements** | 7,625 | 114,480 | 7% |
-| **Combinational Functions** | 6,824 | 114,480 | 6% |
-| **Dedicated Logic Registers** | 3,519 | 114,480 | 3% |
-| **I/O Pins** | 109 | 529 | 21% |
+### Global Hardware Controls (Active in All Modes)
+* **`SW[17:16]` — Mode Selector (`00`, `01`, `10`, `11`):** Selects the active benchmark algorithm (shown on `LEDR[17:16]`, `HEX5`, and LCD Line 2).
+* **`SW[15]` — Hardware Clock-Gating Freeze (`PAUSED!`):** When `SW[15] = 1`, the CPU writes `0x5` to `apb_clk_ctrl` (`0x4000_3000`), gating off `clk_en_timer`. All timer-driven animations freeze instantly and the LCD displays **`PAUSED! OUT:xxxx`**.
+* **`SW[14:12]` — Real-Time Timer Prescaler (`000`..`111`):** Dynamically updates `TIMER_RELOAD` (`0x4000_1008`) to scale the hardware interrupt frequency from **~12.5 Hz (fastest)** to **~1.5 Hz (slowest)**.
+* **`KEY[0]` — Asynchronous Assert / Synchronous Deassert Reset:** Resets `PC` to `0x0000_0000`.
 
 ---
 
-## Getting Started (Terasic DE2-115)
+### Mode `00` (`SW[17:16] = 00`): Interrupt-Driven KITT Scanner
+* **What it does:** A 2-LED comet bar (`$s2`) bounces smoothly left and right across `LEDR[15:0]` inside the Timer Interrupt Service Routine (`0x0000_0010`), while the main loop overlays `SW[11:0]` via bitwise `XOR`.
+* **LCD Display:**
+  ```text
+  LKKN DND MINISOC
+  M0:KITT OUT:0030
+  ```
+<!-- Chèn ảnh hoặc GIF chụp mạch thật ở Mode 00 vào dòng dưới: -->
+<!-- ![Mode 00 KITT Demo](docs/images/demo_mode00_kitt.gif) -->
 
-1. Open `fpga/my_soc.qpf` in **Intel Quartus Prime (20.1.1+)**.
-2. Verify `de2_115_wrapper` is set as the Top-Level Entity.
-3. Run **Compile Design** (or use the pre-built `fpga/output_files/de2_115_wrapper.sof`).
-4. Open **Programmer** and flash `.sof` to the DE2-115 board via **USB-Blaster**.
+---
 
-### Interactive Firmware Controls (`sw/firmware.asm`)
+### Mode `01` (`SW[17:16] = 01`): Dynamic Programming Fibonacci Engine ($F(N)$)
+* **What it does:** Reads $N$ (`0..24`) from **`SW[4:0]`**, computes the $N$-th Fibonacci number iteratively ($F_n = F_{n-1} + F_{n-2}$) in CPU registers, and outputs the 16-bit binary result to `LEDR[15:0]` while the hardware Double-Dabble engine displays the **exact 5-digit decimal value** on `HEX4..HEX0` and the LCD:
+  * $N = 5$ (`SW[4:0] = 00101`) $\rightarrow$ **`00005`**
+  * $N = 10$ (`SW[4:0] = 01010`) $\rightarrow$ **`00055`**
+  * $N = 20$ (`SW[4:0] = 10100`) $\rightarrow$ **`06765`**
+  * $N = 24$ (`SW[4:0] = 11000`) $\rightarrow$ **`46368`** (Largest Fibonacci number fitting in 16-bit unsigned output $\le 65,535$)
+* **LCD Display:**
+  ```text
+  LKKN DND MINISOC
+  M1:FIB OUT:46368
+  ```
+<!-- Chèn ảnh chụp mạch thật ở Mode 01 (Fibonacci) vào dòng dưới: -->
+<!-- ![Mode 01 Fibonacci Demo](docs/images/demo_mode01_fib.jpg) -->
 
-| Control | Function |
-| :--- | :--- |
-| **`KEY[0]`** | Active-low system reset |
-| **`SW[17:16]`** | **Mode Selector** (shown on `LEDR[17:16]`):<br>• `00`: Knight Rider (KITT) Scanner XOR `SW[11:0]`<br>• `01`: Fibonacci Calculator `Fib(SW[4:0])` (Decimal on `HEX`)<br>• `10`: Software Multiplier `SW[11:6] × SW[5:0]` (Decimal on `HEX`)<br>• `11`: 32-bit LFSR Matrix + KITT Wave |
-| **`SW[15]`** | **Hardware Clock-Gating Freeze** (`1` = Gate Timer clock, `0` = Run) |
-| **`SW[14:12]`** | **Timer Speed** (`000` = Fastest ~0.08s, `111` = Slowest ~0.67s) |
+---
+
+### Mode `10` (`SW[17:16] = 10`): Software Multiplication Engine ($A \times B$)
+* **What it does:** Even though the single-cycle MIPS32 ALU has no hardware multiplier (`*`), the CPU multiplies a 6-bit operand **$A = \text{SW}[11:6]$ (`0..63`)** by a 6-bit operand **$B = \text{SW}[5:0]$ (`0..63`)** in software and displays the **5-digit decimal product** (up to $63 \times 63 = 3,969$) on `HEX4..HEX0` and the LCD!
+* **LCD Display (Example: $7 \times 7 = 49$):**
+  ```text
+  LKKN DND MINISOC
+  M2:MUL OUT:00049
+  ```
+<!-- Chèn ảnh chụp mạch thật ở Mode 10 (Multiplier) vào dòng dưới: -->
+<!-- ![Mode 10 Multiplier Demo](docs/images/demo_mode10_mul.jpg) -->
+
+---
+
+### Mode `11` (`SW[17:16] = 11`): 32-Bit LFSR Pseudo-Random Matrix & Clock-Gating Freezer
+* **What it does:** On every Timer IRQ tick, the CPU advances a 32-bit Linear Feedback Shift Register (`$s4 = ($s4 << 1) ^ 0x5A39`) combined with the KITT wave to generate a pseudo-random 16-bit matrix pattern on `LEDR[15:0]`. Flipping **`SW[15] = 1`** gates the timer clock and freezes a random 16-bit number on screen!
+* **LCD Display:**
+  ```text
+  LKKN DND MINISOC
+  M3:LFSR OUT:5A3F
+  ```
+<!-- Chèn ảnh hoặc GIF chụp mạch thật ở Mode 11 / PAUSED vào dòng dưới: -->
+<!-- ![Mode 11 LFSR Demo](docs/images/demo_mode11_lfsr.gif) -->
+
+---
+
+## 3. Repository Structure & Documentation
+
+* **[docs/01_SRS_and_Architecture.md](docs/01_SRS_and_Architecture.md):** System Requirements Specification, Bus Timing & Block Diagrams.
+* **[docs/02_Chip_Reference_Manual.md](docs/02_Chip_Reference_Manual.md):** Complete Memory Map & Bit-Level Register Programmer's Guide.
+* **[docs/03_Step_By_Step_Learning_Guide.md](docs/03_Step_By_Step_Learning_Guide.md):** Step-by-Step Design Workflow, Theory, Algorithms & 3-Week Timeline.
+* **`rtl/`:** Complete synthesizable Verilog HDL source code (11 modules).
+* **`sw/`:** Annotated 4-Mode MIPS32 Firmware ([firmware.asm](sw/firmware.asm), [firmware.hex](sw/firmware.hex), [firmware.mif](sw/firmware.mif)).
+* **`fpga/`:** Intel Quartus Prime project ([my_soc.qpf](fpga/my_soc.qpf)), DE2-115 pin assignments ([de2_115_wrapper.qsf](fpga/de2_115_wrapper.qsf)), 50 MHz timing constraints ([de2_115_wrapper.sdc](fpga/de2_115_wrapper.sdc)), and ready-to-program bitstream ([output_files/de2_115_wrapper.sof](fpga/output_files/de2_115_wrapper.sof)).
