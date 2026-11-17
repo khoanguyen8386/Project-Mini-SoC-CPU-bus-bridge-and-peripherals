@@ -1,12 +1,12 @@
-<div align="center">
 
 # LKKN-DND Mini-SoC: 32-Bit MIPS32 & AMBA 3 AHB-Lite / APB3 System-on-Chip
 
-[![Architecture](https://img.shields.io/badge/ISA-MIPS32-blue.svg)](#)
-[![Bus](https://img.shields.io/badge/Bus-AMBA%20AHB--Lite%20%2F%20APB3-orange.svg)](#)
-[![HDL](https://img.shields.io/badge/HDL-Verilog-brightgreen.svg)](#)
-[![FPGA](https://img.shields.io/badge/FPGA-Terasic%20DE2--115%20(Cyclone%20IV%20E)-red.svg)](#)
-[![Tool](https://img.shields.io/badge/Quartus%20Prime-20.1.1%20Lite-purple.svg)](#)
+
+  [![Architecture](https://img.shields.io/badge/ISA-MIPS32-blue.svg)](#)
+  [![Bus](https://img.shields.io/badge/Bus-AMBA%20AHB--Lite%20%2F%20APB3-orange.svg)](#)
+  [![HDL](https://img.shields.io/badge/HDL-Verilog-brightgreen.svg)](#)
+  [![FPGA](https://img.shields.io/badge/FPGA-Terasic%20DE2--115%20(Cyclone%20IV%20E)-red.svg)](#)
+  [![Tool](https://img.shields.io/badge/Quartus%20Prime-20.1.1%20Lite-purple.svg)](#)
 
 
 <p align="center">
