@@ -2,6 +2,9 @@
 
 # LKKN-DND Mini-SoC: 32-Bit MIPS32 & AMBA 3 AHB-Lite / APB3 System-on-Chip
 
+[![English](https://img.shields.io/badge/🌐_Language-English_(Active)-2ea44f?style=for-the-badge)](README.md)
+[![Tiếng Việt](https://img.shields.io/badge/🇻🇳_Ngôn_ngữ-Tiếng_Việt_(Bấm_để_đọc)-d73a49?style=for-the-badge)](README.vi.md)
+
 [![Architecture](https://img.shields.io/badge/ISA-MIPS32-blue.svg)](#)
 [![Bus](https://img.shields.io/badge/Bus-AMBA%20AHB--Lite%20%2F%20APB3-orange.svg)](#)
 [![HDL](https://img.shields.io/badge/HDL-Verilog-brightgreen.svg)](#)
