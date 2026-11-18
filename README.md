@@ -1,13 +1,16 @@
+<div align="center">
 
 # LKKN-DND Mini-SoC: 32-Bit MIPS32 & AMBA 3 AHB-Lite / APB3 System-on-Chip
 
+[![Architecture](https://img.shields.io/badge/ISA-MIPS32-blue.svg)](#)
+[![Bus](https://img.shields.io/badge/Bus-AMBA%20AHB--Lite%20%2F%20APB3-orange.svg)](#)
+[![HDL](https://img.shields.io/badge/HDL-Verilog-brightgreen.svg)](#)
+[![FPGA](https://img.shields.io/badge/FPGA-Terasic%20DE2--115%20(Cyclone%20IV%20E)-red.svg)](#)
+[![Tool](https://img.shields.io/badge/Quartus%20Prime-20.1.1%20Lite-purple.svg)](#)
 
-  [![Architecture](https://img.shields.io/badge/ISA-MIPS32-blue.svg)](#)
-  [![Bus](https://img.shields.io/badge/Bus-AMBA%20AHB--Lite%20%2F%20APB3-orange.svg)](#)
-  [![HDL](https://img.shields.io/badge/HDL-Verilog-brightgreen.svg)](#)
-  [![FPGA](https://img.shields.io/badge/FPGA-Terasic%20DE2--115%20(Cyclone%20IV%20E)-red.svg)](#)
-  [![Tool](https://img.shields.io/badge/Quartus%20Prime-20.1.1%20Lite-purple.svg)](#)
+*A complete 32-bit MIPS32 System-on-Chip designed in Verilog HDL with AMBA AHB-Lite interconnect, AHB-to-APB3 bridge, hardware timer interrupts, per-peripheral clock gating, and a 4-mode interactive firmware running on the Terasic DE2-115 FPGA.*
 
+</div>
 
 <p align="center">
   <a href="docs/images/mini_soc_top.svg">
@@ -45,7 +48,7 @@
 
 ---
 
-## 2. Live Hardware Benchmark Suite (`sw/firmware.hex`)
+## 2. Live Hardware Benchmark Suite on Terasic DE2-115 (`sw/firmware.hex`)
 
 Instead of simple switch-to-LED wiring, the chip executes a **64-instruction MIPS32 benchmark firmware** ([sw/firmware.asm](sw/firmware.asm)) that demonstrates real-time interrupt multitasking, dynamic programming, software arithmetic, and hardware clock gating across **4 interactive modes** selected by **`SW[17:16]`**:
 
@@ -57,55 +60,47 @@ Instead of simple switch-to-LED wiring, the chip executes a **64-instruction MIP
 
 ---
 
-### Mode `00` (`SW[17:16] = 00`): Interrupt-Driven KITT Scanner
-* **What it does:** A 2-LED comet bar (`$s2`) bounces smoothly left and right across `LEDR[15:0]` inside the Timer Interrupt Service Routine (`0x0000_0010`), while the main loop overlays `SW[11:0]` via bitwise `XOR`.
-* **LCD Display:**
-  ```text
-  LKKN DND MINISOC
-  M0:KITT OUT:0030
-  ```
-<!-- Chèn ảnh hoặc GIF chụp mạch thật ở Mode 00 vào dòng dưới: -->
-<!-- ![Mode 00 KITT Demo](docs/images/demo_mode00_kitt.gif) -->
+### 🔹 Mode `00` (`SW[17:16] = 00`): Interrupt-Driven KITT Scanner
+* **How it works:** A 2-LED comet bar (`$s2`) bounces smoothly left and right across `LEDR[15:0]` inside the Timer Interrupt Service Routine (`0x0000_0010`), while the main loop overlays `SW[11:0]` via bitwise `XOR`.
+* **Live LCD & 7-Segment Readout:** `LKKN DND MINISOC` / `M0:KITT OUT:0006` (`HEX7..6 = 80` PC, `HEX5 = 0`, `HEX3..0 = 0006`).
+
+| 📸 Hardware Photo (`M0:KITT`) | 🎞️ Live Video / GIF Demo (Click GIF for `.mp4`) |
+| :---: | :---: |
+| <a href="docs/images/mode00_kitt.jpg"><img src="docs/images/mode00_kitt.jpg" width="100%" alt="Mode 00 KITT Photo"></a> | <a href="docs/images/mode00_kitt.mp4"><img src="docs/images/mode00_kitt.gif" width="100%" alt="Mode 00 KITT Live Demo GIF"></a> |
 
 ---
 
-### Mode `01` (`SW[17:16] = 01`): Dynamic Programming Fibonacci Engine ($F(N)$)
-* **What it does:** Reads $N$ (`0..24`) from **`SW[4:0]`**, computes the $N$-th Fibonacci number iteratively ($F_n = F_{n-1} + F_{n-2}$) in CPU registers, and outputs the 16-bit binary result to `LEDR[15:0]` while the hardware Double-Dabble engine displays the **exact 5-digit decimal value** on `HEX4..HEX0` and the LCD:
+### 🔹 Mode `01` (`SW[17:16] = 01`): Dynamic Programming Fibonacci Engine ($F(N)$)
+* **How it works:** Reads $N$ (`0..24`) from **`SW[4:0]`**, computes the $N$-th Fibonacci number iteratively ($F_n = F_{n-1} + F_{n-2}$) in CPU registers, and outputs the 16-bit binary result to `LEDR[15:0]` while the hardware Double-Dabble BCD engine displays the **exact 5-digit decimal value** on `HEX4..HEX0` and the LCD:
   * $N = 5$ (`SW[4:0] = 00101`) $\rightarrow$ **`00005`**
   * $N = 10$ (`SW[4:0] = 01010`) $\rightarrow$ **`00055`**
   * $N = 20$ (`SW[4:0] = 10100`) $\rightarrow$ **`06765`**
-  * $N = 24$ (`SW[4:0] = 11000`) $\rightarrow$ **`46368`** (Largest Fibonacci number fitting in 16-bit unsigned output $\le 65,535$)
-* **LCD Display:**
-  ```text
-  LKKN DND MINISOC
-  M1:FIB OUT:46368
-  ```
-<!-- Chèn ảnh chụp mạch thật ở Mode 01 (Fibonacci) vào dòng dưới: -->
-<!-- ![Mode 01 Fibonacci Demo](docs/images/demo_mode01_fib.jpg) -->
+  * $N = 24$ (`SW[4:0] = 11000`) $\rightarrow$ **`46368`** (`1011_0101_0010_0000` on `LEDR[15:0]` — largest Fibonacci number fitting in 16-bit unsigned output $\le 65,535$)
+* **Live LCD & 7-Segment Readout:** `LKKN DND MINISOC` / `M1:FIB OUT:46368` (`HEX4..0 = 46368`).
+
+| 📸 Hardware Photo ($F(24) = 46,368$) | 🎞️ Live Video / GIF Demo (Click GIF for `.mp4`) |
+| :---: | :---: |
+| <a href="docs/images/mode01_fib.jpg"><img src="docs/images/mode01_fib.jpg" width="100%" alt="Mode 01 Fibonacci Photo"></a> | <a href="docs/images/mode01_fib.mp4"><img src="docs/images/mode01_fib.gif" width="100%" alt="Mode 01 Fibonacci Live Demo GIF"></a> |
 
 ---
 
-### Mode `10` (`SW[17:16] = 10`): Software Multiplication Engine ($A \times B$)
-* **What it does:** Even though the single-cycle MIPS32 ALU has no hardware multiplier (`*`), the CPU multiplies a 6-bit operand **$A = \text{SW}[11:6]$ (`0..63`)** by a 6-bit operand **$B = \text{SW}[5:0]$ (`0..63`)** in software and displays the **5-digit decimal product** (up to $63 \times 63 = 3,969$) on `HEX4..HEX0` and the LCD!
-* **LCD Display (Example: $7 \times 7 = 49$):**
-  ```text
-  LKKN DND MINISOC
-  M2:MUL OUT:00049
-  ```
-<!-- Chèn ảnh chụp mạch thật ở Mode 10 (Multiplier) vào dòng dưới: -->
-<!-- ![Mode 10 Multiplier Demo](docs/images/demo_mode10_mul.jpg) -->
+### 🔹 Mode `10` (`SW[17:16] = 10`): Software Multiplication Engine ($A \times B$)
+* **How it works:** Even though the single-cycle MIPS32 ALU has no hardware multiplier (`*`), the CPU multiplies a 6-bit operand **$A = \text{SW}[11:6]$ (`0..63`)** by a 6-bit operand **$B = \text{SW}[5:0]$ (`0..63`)** in software via an iterative accumulation loop and displays the **5-digit decimal product** on `HEX4..HEX0` and the LCD (`7 × 3 = 00021`, `7 × 7 = 00049`, up to `63 × 63 = 03969`)!
+* **Live LCD & 7-Segment Readout:** `LKKN DND MINISOC` / `M2:MUL OUT:00049` (`HEX4..0 = 00049`).
+
+| 📸 Hardware Photo ($7 \times 7 = 49$) | 🎞️ Live Video / GIF Demo (Click GIF for `.mp4`) |
+| :---: | :---: |
+| <a href="docs/images/mode10_mul.jpg"><img src="docs/images/mode10_mul.jpg" width="100%" alt="Mode 10 Multiplier Photo"></a> | <a href="docs/images/mode10_mul.mp4"><img src="docs/images/mode10_mul.gif" width="100%" alt="Mode 10 Multiplier Live Demo GIF"></a> |
 
 ---
 
-### Mode `11` (`SW[17:16] = 11`): 32-Bit LFSR Pseudo-Random Matrix & Clock-Gating Freezer
-* **What it does:** On every Timer IRQ tick, the CPU advances a 32-bit Linear Feedback Shift Register (`$s4 = ($s4 << 1) ^ 0x5A39`) combined with the KITT wave to generate a pseudo-random 16-bit matrix pattern on `LEDR[15:0]`. Flipping **`SW[15] = 1`** gates the timer clock and freezes a random 16-bit number on screen!
-* **LCD Display:**
-  ```text
-  LKKN DND MINISOC
-  M3:LFSR OUT:5A3F
-  ```
-<!-- Chèn ảnh hoặc GIF chụp mạch thật ở Mode 11 / PAUSED vào dòng dưới: -->
-<!-- ![Mode 11 LFSR Demo](docs/images/demo_mode11_lfsr.gif) -->
+### 🔹 Mode `11` (`SW[17:16] = 11`): 32-Bit LFSR Pseudo-Random Matrix & Clock-Gating Freezer (`PAUSED!`)
+* **How it works:** On every Timer IRQ tick, the CPU advances a 32-bit Linear Feedback Shift Register (`$s4 = ($s4 << 1) ^ 0x5A39`) combined with the KITT wave to generate a pseudo-random 16-bit matrix pattern on `LEDR[15:0]`. Flipping **`SW[15] = 1`** writes to `apb_clk_ctrl` (`0x4000_3000`) to gate off `clk_en_timer`, freezing a random 16-bit number on screen and switching the LCD to **`PAUSED! OUT:xxxx`**!
+* **Live LCD & 7-Segment Readout:** `LKKN DND MINISOC` / `M3:LFSR OUT:36D7` $\leftrightarrow$ `PAUSED! OUT:36D7`.
+
+| 📸 Hardware Photo (`M3:LFSR OUT:36D7`) | 🎞️ Live Video / GIF Demo (`M3:LFSR` $\leftrightarrow$ `PAUSED!`) |
+| :---: | :---: |
+| <a href="docs/images/mode11_lfsr.jpg"><img src="docs/images/mode11_lfsr.jpg" width="100%" alt="Mode 11 LFSR Photo"></a> | <a href="docs/images/mode11_lfsr.mp4"><img src="docs/images/mode11_lfsr.gif" width="100%" alt="Mode 11 LFSR and Clock Gating Pause GIF"></a> |
 
 ---
 
