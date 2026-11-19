@@ -114,40 +114,53 @@ Bình thường khi sử dụng điện thoại hay máy tính, bên trong chún
 
 ---
 
-## 4. Hướng Dẫn Mô Phỏng & Kiểm Tra (Simulation & Testbench)
+## 4. Hướng Dẫn Sử Dụng Dự Án (Từ Mô Phỏng Đến Nạp Mạch FPGA)
 
-Thư mục `sim/` chứa bộ testbench tự kiểm tra (self-checking) chuẩn SystemVerilog (`iverilog -g2012`) để xác minh hoạt động của CPU, bus AMBA AHB-Lite, cầu nối APB3 và các ngoại vi trước khi nạp xuống FPGA.
+### 4.1. Chạy mô phỏng kiểm tra trên máy tính (Simulation)
+Yêu cầu cài sẵn **Icarus Verilog** (`iverilog`, `vvp`) và **GTKWave** (tùy chọn để xem sóng).
+* **Windows:** Bấm đúp vào [sim/run_sim.bat](sim/run_sim.bat) hoặc chạy `sim\run_sim.bat` trong CMD/PowerShell.
+* **Linux / macOS / WSL:**
+  ```bash
+  cd sim
+  make all     # Chạy cả unit test (tb_unit_suite) và full SoC (tb_mini_soc)
+  make wave    # Mở dạng sóng tb_mini_soc.vcd bằng GTKWave
+  make clean   # Dọn file tạm .vvp và .vcd
+  ```
+* Kết quả đạt chuẩn: `tb_unit_suite` (**11 PASSED, 0 FAILED**) và `tb_mini_soc` (**8 PASSED, 0 FAILED**), 0 lỗi giao thức AHB.
 
-### 4.1. Thành phần trong `sim/`
-* **[ahb_protocol_checker.sv](sim/ahb_protocol_checker.sv):** Bộ giám sát giao thức AMBA 3 AHB-Lite (kiểm tra X/Z, tính ổn định địa chỉ/điều khiển trong wait-state và phản hồi lỗi `HRESP` 2 chu kỳ).
-* **[tb_unit_suite.sv](sim/tb_unit_suite.sv):** Unit test kiểm tra riêng lẻ SRAM (Word/Halfword/Byte), Default Slave `HRESP`, APB GPIO, APB Timer (IRQ & W1C), APB Clock Controller và APB UART (loopback).
-* **[tb_mini_soc.sv](sim/tb_mini_soc.sv):** Testbench toàn hệ thống (`mini_soc_top`) chạy firmware thật `sw/firmware.hex` qua cả 4 chế độ (`00`, `01`, `10`, `11`), kèm bộ giải mã Serial UART 8N1 và AHB Protocol Checker.
-* **[gtkwave_setup.gtkw](sim/gtkwave_setup.gtkw):** Cấu hình sẵn nhóm tín hiệu để mở xem dạng sóng nhanh trong GTKWave.
-* **[run_sim.bat](sim/run_sim.bat)** / **[Makefile](sim/Makefile):** Script tự động biên dịch và chạy toàn bộ mô phỏng.
+---
 
-### 4.2. Yêu cầu cài đặt
-* **Icarus Verilog** (`iverilog` & `vvp`, hỗ trợ `-g2012`) đã thêm vào `PATH`.
-* *(Tùy chọn)* **GTKWave** để xem file sóng `.vcd`.
+### 4.2. Biên dịch & Nạp xuống mạch Terasic DE2-115 (Quartus Prime)
+1. Cấp nguồn và kết nối mạch **Terasic DE2-115** với máy tính qua cổng **USB-Blaster**.
+2. **Cách nhanh (dùng file `.sof` có sẵn):**
+   * Mở **Quartus Prime Programmer**, chọn **Hardware Setup** $\rightarrow$ **USB-Blaster**.
+   * Nhấn **Add File...** và chọn [fpga/output_files/de2_115_wrapper.sof](fpga/output_files/de2_115_wrapper.sof).
+   * Tích **Program/Configure** rồi nhấn **Start** để nạp chip.
+3. **Cách biên dịch lại từ mã nguồn:**
+   * Mở project [fpga/my_soc.qpf](fpga/my_soc.qpf) bằng **Intel Quartus Prime (20.1.1 Lite)**.
+   * Chạy **Compile Design** (đã cấu hình sẵn pin trong `de2_115_wrapper.qsf` và clock 50 MHz trong `de2_115_wrapper.sdc`).
+   * Mở **Programmer** và nạp file `.sof` vừa tạo.
 
-### 4.3. Cách chạy mô phỏng
+---
 
-**Trên Windows (CMD / PowerShell / bấm đúp):**
-* Bấm đúp trực tiếp vào [sim/run_sim.bat](sim/run_sim.bat) trong File Explorer, hoặc chạy trong terminal:
-```bat
-sim\run_sim.bat
-```
+### 4.3. Hướng dẫn thao tác trên bảng mạch DE2-115
+Sau khi nạp xong, nhấn **`KEY[0]`** để reset CPU về `PC = 0x0000_0000`, sau đó dùng hàng công tắc gạt **`SW[17:0]`**:
 
-**Trên Linux / macOS / WSL:**
-```bash
-cd sim
-make all     # Chạy cả tb_unit_suite và tb_mini_soc
-make unit    # Chỉ chạy unit test
-make soc     # Chỉ chạy full SoC testbench
-make wave    # Mở waveform tb_mini_soc.vcd bằng GTKWave
-make clean   # Xóa các file .vvp và .vcd tạm
-```
+| Công tắc / Nút nhấn | Chức năng |
+| :--- | :--- |
+| **`KEY[0]`** | Reset toàn bộ hệ thống (nhấn để khởi động lại chương trình) |
+| **`SW[17:16]`** | Chọn chế độ: `00` (KITT), `01` (Fibonacci), `10` (Nhân $A \times B$), `11` (LFSR) |
+| **`SW[15]`** | Đóng băng xung nhịp Timer (`1` = Tạm dừng / `PAUSED!`, `0` = Chạy tiếp) |
+| **`SW[14:12]`** | Điều chỉnh tốc độ Timer (`000` nhanh nhất $\rightarrow$ `111` chậm nhất) |
+| **`SW[11:0]`** | • Mode `00`: Tạo mẫu XOR chồng lên vệt đèn KITT<br/>• Mode `01`: `SW[4:0]` nhập số $N$ (`0..24`) để tính $F(N)$<br/>• Mode `10`: `SW[11:6]` nhập $A$ (`0..63`), `SW[5:0]` nhập $B$ (`0..63`) để tính $A \times B$ |
 
-### 4.4. Kết quả mong đợi
-Khi chạy thành công, màn hình sẽ báo `ALL TESTS PASSED` / `0 FAILED` cho cả hai bài test:
-* `tb_unit_suite`: **11 PASSED, 0 FAILED** (0 lỗi giao thức AHB).
-* `tb_mini_soc`: **8 PASSED, 0 FAILED** (0 lỗi giao thức AHB).
+**Quan sát kết quả hiển thị:**
+* **`LEDR[17:0]`:** Hiển thị mã chế độ ở `LEDR[17:16]` và kết quả nhị phân 16-bit ở `LEDR[15:0]`.
+* **`HEX7..HEX0`:** `HEX7..6` hiện `PC`, `HEX5` hiện chế độ (`0..3`), `HEX4..0` hiện giá trị thập phân 5 chữ số.
+* **Màn hình LCD 16×2:** Dòng 1 hiện `LKKN DND MINISOC`, dòng 2 hiện chế độ và kết quả theo thời gian thực.
+
+---
+
+### 4.4. Tùy chỉnh phần mềm (Firmware)
+* Mã nguồn hợp ngữ MIPS32 nằm tại [sw/firmware.asm](sw/firmware.asm).
+* Khi thay đổi chương trình, cập nhật hai file khởi tạo bộ nhớ [sw/firmware.hex](sw/firmware.hex) (cho mô phỏng `iverilog`) và [sw/firmware.mif](sw/firmware.mif) (cho Quartus M9K RAM), sau đó chạy lại mô phỏng hoặc biên dịch lại trên Quartus.

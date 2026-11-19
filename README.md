@@ -119,40 +119,52 @@ Instead of simple switch-to-LED wiring, the chip executes a **64-instruction MIP
 
 ---
 
-## 4. Simulation & Testbench Usage Guide
+## 4. Project Usage Guide (Simulation to FPGA Deployment)
 
-The `sim/` directory provides self-checking SystemVerilog testbenches (`iverilog -g2012`) to verify the MIPS32 CPU, AMBA 3 AHB-Lite interconnect, AHB-to-APB3 bridge, and all peripherals prior to FPGA synthesis.
+### 4.1. Running RTL Simulation
+Requires **Icarus Verilog** (`iverilog`, `vvp` with `-g2012`) and optionally **GTKWave** for waveform inspection.
+* **Windows:** Double-click [sim/run_sim.bat](sim/run_sim.bat) or run `sim\run_sim.bat` in CMD/PowerShell.
+* **Linux / macOS / WSL:**
+  ```bash
+  cd sim
+  make all     # Run both tb_unit_suite and tb_mini_soc
+  make wave    # Open tb_mini_soc.vcd in GTKWave
+  make clean   # Remove generated .vvp and .vcd files
+  ```
+* Expected results: `tb_unit_suite` (**11 PASSED, 0 FAILED**) and `tb_mini_soc` (**8 PASSED, 0 FAILED**) with zero AHB protocol violations.
 
-### 4.1. Contents of `sim/`
-* **[ahb_protocol_checker.sv](sim/ahb_protocol_checker.sv):** AMBA 3 AHB-Lite bus monitor checking X/Z states, address/control stability during wait states, and 2-cycle `HRESP` ERROR protocol compliance.
-* **[tb_unit_suite.sv](sim/tb_unit_suite.sv):** Self-checking unit tests for SRAM (Word/Halfword/Byte), Default Slave `HRESP`, APB GPIO, APB Timer (IRQ & W1C), APB Clock Controller, and APB UART (TX/RX loopback).
-* **[tb_mini_soc.sv](sim/tb_mini_soc.sv):** Full-chip testbench (`mini_soc_top`) executing `sw/firmware.hex` across all 4 modes (`00`, `01`, `10`, `11`), complete with a Serial 8N1 UART decoder and live AHB protocol monitor.
-* **[gtkwave_setup.gtkw](sim/gtkwave_setup.gtkw):** Pre-configured GTKWave signal hierarchy for `tb_mini_soc.vcd`.
-* **[run_sim.bat](sim/run_sim.bat)** / **[Makefile](sim/Makefile):** Automated compile-and-run scripts for Windows and Linux/macOS/WSL.
+---
 
-### 4.2. Prerequisites
-* **Icarus Verilog** (`iverilog` & `vvp` with `-g2012` support) in your `PATH`.
-* *(Optional)* **GTKWave** for viewing `.vcd` waveforms.
+### 4.2. Synthesizing & Programming the Terasic DE2-115 FPGA
+1. Power on the **Terasic DE2-115** board and connect it via **USB-Blaster**.
+2. **Quick Program (using pre-built bitstream):**
+   * Open **Quartus Prime Programmer**, set **Hardware Setup** $\rightarrow$ **USB-Blaster**.
+   * Click **Add File...** and select [fpga/output_files/de2_115_wrapper.sof](fpga/output_files/de2_115_wrapper.sof).
+   * Check **Program/Configure** and click **Start**.
+3. **Rebuild from Source:**
+   * Open [fpga/my_soc.qpf](fpga/my_soc.qpf) in **Intel Quartus Prime (20.1.1 Lite)** (pin assignments in `de2_115_wrapper.qsf` and 50 MHz constraints in `de2_115_wrapper.sdc` are already configured).
+   * Run **Compile Design**, then program the generated `.sof` via **Programmer**.
 
-### 4.3. Running the Simulations
+---
 
-**Windows (CMD / PowerShell / Double-Click):**
-* Double-click [sim/run_sim.bat](sim/run_sim.bat) in File Explorer, or run:
-```bat
-sim\run_sim.bat
-```
+### 4.3. Operating the Chip on the DE2-115 Board
+Press **`KEY[0]`** to reset the CPU (`PC = 0x0000_0000`), then control the SoC with **`SW[17:0]`**:
 
-**Linux / macOS / WSL:**
-```bash
-cd sim
-make all     # Run both tb_unit_suite and tb_mini_soc
-make unit    # Run unit test suite only
-make soc     # Run full SoC testbench only
-make wave    # Open tb_mini_soc.vcd in GTKWave
-make clean   # Remove generated .vvp and .vcd files
-```
+| Switch / Key | Function |
+| :--- | :--- |
+| **`KEY[0]`** | System reset (resets CPU and peripherals) |
+| **`SW[17:16]`** | Mode selector: `00` (KITT), `01` (Fibonacci), `10` (Multiplier $A \times B$), `11` (LFSR) |
+| **`SW[15]`** | Timer clock-gating freeze (`1` = `PAUSED!`, `0` = Run) |
+| **`SW[14:12]`** | Timer speed prescaler (`000` fastest $\rightarrow$ `111` slowest) |
+| **`SW[11:0]`** | • Mode `00`: Bitwise XOR overlay on KITT bar<br/>• Mode `01`: `SW[4:0]` sets $N$ (`0..24`) for $F(N)$<br/>• Mode `10`: `SW[11:6]` sets $A$ (`0..63`), `SW[5:0]` sets $B$ (`0..63`) for $A \times B$ |
 
-### 4.4. Expected Output
-Both testbenches should finish with `0 FAILED` and zero AHB protocol violations:
-* `tb_unit_suite`: **11 PASSED, 0 FAILED**
-* `tb_mini_soc`: **8 PASSED, 0 FAILED**
+**Live Outputs:**
+* **`LEDR[17:0]`:** `LEDR[17:16]` shows current mode; `LEDR[15:0]` shows 16-bit binary output.
+* **`HEX7..HEX0`:** `HEX7..6` displays live `PC`, `HEX5` displays mode (`0..3`), `HEX4..0` displays 5-digit decimal output.
+* **16×2 LCD:** Line 1 shows `LKKN DND MINISOC`; Line 2 shows active mode and real-time result.
+
+---
+
+### 4.4. Customizing the Firmware
+* Edit the MIPS32 assembly in [sw/firmware.asm](sw/firmware.asm).
+* Update [sw/firmware.hex](sw/firmware.hex) (used by `iverilog` simulation) and [sw/firmware.mif](sw/firmware.mif) (used by Quartus M9K RAM), then re-run simulation or recompile in Quartus.
