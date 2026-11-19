@@ -1,0 +1,56 @@
+[*]
+[*] GTKWave Analyzer v3.3.100 (w)1999-2019 BSI
+[*] Mini-SoC Pre-configured Signal Hierarchy
+[*]
+[dumpfile] "tb_mini_soc.vcd"
+[timestart] 0
+[size] 1400 800
+[pos] -1 -1
+*-15.000000 0 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 240
+[signals_width] 220
+[sst_expanded] 1
+@28
+tb_mini_soc.HCLK
+tb_mini_soc.HRESETn
+@200
+-CPU Core
+@22
+tb_mini_soc.dbg_pc[31:0]
+@28
+tb_mini_soc.dbg_timer_irq
+@200
+-GPIO & Board I/O
+@22
+tb_mini_soc.gpio_sw_in[17:0]
+tb_mini_soc.gpio_ledr_out[17:0]
+@200
+-AHB-Lite Bus
+@22
+tb_mini_soc.dut.HADDR[31:0]
+@28
+tb_mini_soc.dut.HTRANS[1:0]
+tb_mini_soc.dut.HWRITE
+tb_mini_soc.dut.HREADY
+tb_mini_soc.dut.HRESP
+@22
+tb_mini_soc.dut.HWDATA[31:0]
+tb_mini_soc.dut.HRDATA[31:0]
+@200
+-APB3 Bus
+@22
+tb_mini_soc.dut.PADDR[31:0]
+@28
+tb_mini_soc.dut.PENABLE
+tb_mini_soc.dut.PWRITE
+tb_mini_soc.dut.PSEL_GPIO
+tb_mini_soc.dut.PSEL_TIMER
+tb_mini_soc.dut.PSEL_UART
+tb_mini_soc.dut.PSEL_CLK
+@200
+-UART
+@28
+tb_mini_soc.uart_txd
+tb_mini_soc.uart_rxd
+[pattern_trace] 1
+[pattern_trace] 0
