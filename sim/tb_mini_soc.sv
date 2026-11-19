@@ -94,7 +94,8 @@ module tb_mini_soc;
 
     initial begin
         $dumpfile("tb_mini_soc.vcd");
-        $dumpvars(0, tb_mini_soc);
+        $dumpvars(1, tb_mini_soc);
+        $dumpvars(1, tb_mini_soc.dut);
 
         pass_count = 0;
         fail_count = 0;
