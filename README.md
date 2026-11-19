@@ -114,4 +114,45 @@ Instead of simple switch-to-LED wiring, the chip executes a **64-instruction MIP
 * **[docs/03_Step_By_Step_Learning_Guide.md](docs/03_Step_By_Step_Learning_Guide.md):** Step-by-Step Design Workflow, Theory, Algorithms & 3-Week Timeline.
 * **`rtl/`:** Complete synthesizable Verilog HDL source code (11 modules).
 * **`sw/`:** Annotated 4-Mode MIPS32 Firmware ([firmware.asm](sw/firmware.asm), [firmware.hex](sw/firmware.hex), [firmware.mif](sw/firmware.mif)).
+* **`sim/`:** Self-checking SystemVerilog testbenches, AHB-Lite protocol monitor, and automation scripts ([run_sim.bat](sim/run_sim.bat), [Makefile](sim/Makefile)).
 * **`fpga/`:** Intel Quartus Prime project ([my_soc.qpf](fpga/my_soc.qpf)), DE2-115 pin assignments ([de2_115_wrapper.qsf](fpga/de2_115_wrapper.qsf)), 50 MHz timing constraints ([de2_115_wrapper.sdc](fpga/de2_115_wrapper.sdc)), and ready-to-program bitstream ([output_files/de2_115_wrapper.sof](fpga/output_files/de2_115_wrapper.sof)).
+
+---
+
+## 4. Simulation & Testbench Usage Guide
+
+The `sim/` directory provides self-checking SystemVerilog testbenches (`iverilog -g2012`) to verify the MIPS32 CPU, AMBA 3 AHB-Lite interconnect, AHB-to-APB3 bridge, and all peripherals prior to FPGA synthesis.
+
+### 4.1. Contents of `sim/`
+* **[ahb_protocol_checker.sv](sim/ahb_protocol_checker.sv):** AMBA 3 AHB-Lite bus monitor checking X/Z states, address/control stability during wait states, and 2-cycle `HRESP` ERROR protocol compliance.
+* **[tb_unit_suite.sv](sim/tb_unit_suite.sv):** Self-checking unit tests for SRAM (Word/Halfword/Byte), Default Slave `HRESP`, APB GPIO, APB Timer (IRQ & W1C), APB Clock Controller, and APB UART (TX/RX loopback).
+* **[tb_mini_soc.sv](sim/tb_mini_soc.sv):** Full-chip testbench (`mini_soc_top`) executing `sw/firmware.hex` across all 4 modes (`00`, `01`, `10`, `11`), complete with a Serial 8N1 UART decoder and live AHB protocol monitor.
+* **[gtkwave_setup.gtkw](sim/gtkwave_setup.gtkw):** Pre-configured GTKWave signal hierarchy for `tb_mini_soc.vcd`.
+* **[run_sim.bat](sim/run_sim.bat)** / **[Makefile](sim/Makefile):** Automated compile-and-run scripts for Windows and Linux/macOS/WSL.
+
+### 4.2. Prerequisites
+* **Icarus Verilog** (`iverilog` & `vvp` with `-g2012` support) in your `PATH`.
+* *(Optional)* **GTKWave** for viewing `.vcd` waveforms.
+
+### 4.3. Running the Simulations
+
+**Windows (CMD / PowerShell / Double-Click):**
+* Double-click [sim/run_sim.bat](sim/run_sim.bat) in File Explorer, or run:
+```bat
+sim\run_sim.bat
+```
+
+**Linux / macOS / WSL:**
+```bash
+cd sim
+make all     # Run both tb_unit_suite and tb_mini_soc
+make unit    # Run unit test suite only
+make soc     # Run full SoC testbench only
+make wave    # Open tb_mini_soc.vcd in GTKWave
+make clean   # Remove generated .vvp and .vcd files
+```
+
+### 4.4. Expected Output
+Both testbenches should finish with `0 FAILED` and zero AHB protocol violations:
+* `tb_unit_suite`: **11 PASSED, 0 FAILED**
+* `tb_mini_soc`: **8 PASSED, 0 FAILED**

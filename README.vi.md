@@ -109,4 +109,45 @@ Bình thường khi sử dụng điện thoại hay máy tính, bên trong chún
 * **[docs/03_Step_By_Step_Learning_Guide.md](docs/03_Step_By_Step_Learning_Guide.md):** Hướng dẫn từng bước thực hiện đồ án và lộ trình 3 tuần.
 * **`rtl/`:** Toàn bộ 11 file mã nguồn phần cứng Verilog tạo nên con chip.
 * **`sw/`:** Mã nguồn phần mềm 4 chế độ ([firmware.asm](sw/firmware.asm), [firmware.hex](sw/firmware.hex), [firmware.mif](sw/firmware.mif)).
+* **`sim/`:** Bộ testbench tự kiểm tra, AHB Protocol Checker và script chạy mô phỏng ([run_sim.bat](sim/run_sim.bat), [Makefile](sim/Makefile)).
 * **`fpga/`:** Project Quartus Prime và file nạp mạch ([output_files/de2_115_wrapper.sof](fpga/output_files/de2_115_wrapper.sof)).
+
+---
+
+## 4. Hướng Dẫn Mô Phỏng & Kiểm Tra (Simulation & Testbench)
+
+Thư mục `sim/` chứa bộ testbench tự kiểm tra (self-checking) chuẩn SystemVerilog (`iverilog -g2012`) để xác minh hoạt động của CPU, bus AMBA AHB-Lite, cầu nối APB3 và các ngoại vi trước khi nạp xuống FPGA.
+
+### 4.1. Thành phần trong `sim/`
+* **[ahb_protocol_checker.sv](sim/ahb_protocol_checker.sv):** Bộ giám sát giao thức AMBA 3 AHB-Lite (kiểm tra X/Z, tính ổn định địa chỉ/điều khiển trong wait-state và phản hồi lỗi `HRESP` 2 chu kỳ).
+* **[tb_unit_suite.sv](sim/tb_unit_suite.sv):** Unit test kiểm tra riêng lẻ SRAM (Word/Halfword/Byte), Default Slave `HRESP`, APB GPIO, APB Timer (IRQ & W1C), APB Clock Controller và APB UART (loopback).
+* **[tb_mini_soc.sv](sim/tb_mini_soc.sv):** Testbench toàn hệ thống (`mini_soc_top`) chạy firmware thật `sw/firmware.hex` qua cả 4 chế độ (`00`, `01`, `10`, `11`), kèm bộ giải mã Serial UART 8N1 và AHB Protocol Checker.
+* **[gtkwave_setup.gtkw](sim/gtkwave_setup.gtkw):** Cấu hình sẵn nhóm tín hiệu để mở xem dạng sóng nhanh trong GTKWave.
+* **[run_sim.bat](sim/run_sim.bat)** / **[Makefile](sim/Makefile):** Script tự động biên dịch và chạy toàn bộ mô phỏng.
+
+### 4.2. Yêu cầu cài đặt
+* **Icarus Verilog** (`iverilog` & `vvp`, hỗ trợ `-g2012`) đã thêm vào `PATH`.
+* *(Tùy chọn)* **GTKWave** để xem file sóng `.vcd`.
+
+### 4.3. Cách chạy mô phỏng
+
+**Trên Windows (CMD / PowerShell / bấm đúp):**
+* Bấm đúp trực tiếp vào [sim/run_sim.bat](sim/run_sim.bat) trong File Explorer, hoặc chạy trong terminal:
+```bat
+sim\run_sim.bat
+```
+
+**Trên Linux / macOS / WSL:**
+```bash
+cd sim
+make all     # Chạy cả tb_unit_suite và tb_mini_soc
+make unit    # Chỉ chạy unit test
+make soc     # Chỉ chạy full SoC testbench
+make wave    # Mở waveform tb_mini_soc.vcd bằng GTKWave
+make clean   # Xóa các file .vvp và .vcd tạm
+```
+
+### 4.4. Kết quả mong đợi
+Khi chạy thành công, màn hình sẽ báo `ALL TESTS PASSED` / `0 FAILED` cho cả hai bài test:
+* `tb_unit_suite`: **11 PASSED, 0 FAILED** (0 lỗi giao thức AHB).
+* `tb_mini_soc`: **8 PASSED, 0 FAILED** (0 lỗi giao thức AHB).
